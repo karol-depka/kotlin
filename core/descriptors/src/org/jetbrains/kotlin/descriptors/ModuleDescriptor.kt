@@ -27,19 +27,8 @@ import org.jetbrains.kotlin.platform.PlatformToKotlinClassMap
 import org.jetbrains.kotlin.resolve.ImportPath
 import org.jetbrains.kotlin.types.TypeSubstitutor
 
-public trait ModuleDescriptor : DeclarationDescriptor, ModuleParameters {
+public trait ModuleDescriptor : DeclarationDescriptor, ModuleParameters, PackageViewManager {
     override fun getContainingDeclaration(): DeclarationDescriptor? = null
-
-    protected val packageFragmentProvider: PackageFragmentProvider
-
-    public fun getPackage(fqName: FqName): PackageViewDescriptor? {
-        val fragments = packageFragmentProvider.getPackageFragments(fqName)
-        return if (!fragments.isEmpty()) PackageViewDescriptorImpl(this, fqName, fragments) else null
-    }
-
-    public fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> {
-        return packageFragmentProvider.getSubPackagesOf(fqName, nameFilter)
-    }
 
     public val builtIns: KotlinBuiltIns
 
@@ -69,3 +58,9 @@ public fun ModuleParameters(defaultImports: List<ImportPath>, platformToKotlinCl
             override val defaultImports: List<ImportPath> = defaultImports
             override val platformToKotlinClassMap: PlatformToKotlinClassMap = platformToKotlinClassMap
         }
+
+public trait PackageViewManager {
+    public fun getPackage(fqName: FqName): PackageViewDescriptor?
+
+    public fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName>
+}

@@ -17,10 +17,9 @@
 package org.jetbrains.kotlin.descriptors.impl
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleParameters
-import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.storage.StorageManager
 import java.util.ArrayList
@@ -89,7 +88,7 @@ public class ModuleDescriptorImpl(
         packageFragmentProviderForModuleContent = providerForModuleContent
     }
 
-    override val packageFragmentProvider: PackageFragmentProvider
+    val packageFragmentProvider: PackageFragmentProvider
         get() = packageFragmentProviderForWholeModuleWithDependencies
 
     private val friendModules = LinkedHashSet<ModuleDescriptor>()
@@ -104,4 +103,25 @@ public class ModuleDescriptorImpl(
 
     override val builtIns: KotlinBuiltIns
         get() = KotlinBuiltIns.getInstance()
+
+    private val packageViewManager = PackageViewManagerImpl(this)
+
+    override fun getPackage(fqName: FqName): PackageViewDescriptor? {
+        return packageViewManager.getPackage(fqName)
+    }
+
+    override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> {
+        return packageViewManager.getSubPackagesOf(fqName, nameFilter)
+    }
+}
+
+class PackageViewManagerImpl(private val module: ModuleDescriptorImpl) : PackageViewManager {
+    override fun getPackage(fqName: FqName): PackageViewDescriptor? {
+        val fragments = module.packageFragmentProvider.getPackageFragments(fqName)
+        return if (!fragments.isEmpty()) PackageViewDescriptorImpl(module, fqName, fragments) else null
+    }
+
+    override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> {
+        return module.packageFragmentProvider.getSubPackagesOf(fqName, nameFilter)
+    }
 }
