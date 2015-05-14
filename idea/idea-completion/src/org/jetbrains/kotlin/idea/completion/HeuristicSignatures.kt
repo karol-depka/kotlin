@@ -16,24 +16,24 @@
 
 package org.jetbrains.kotlin.idea.completion
 
+import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import java.util.HashMap
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
+import org.jetbrains.kotlin.descriptors.impl.SubpackagesScope
+import org.jetbrains.kotlin.di.InjectorForMacros
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.resolve.DescriptorUtils
-import org.jetbrains.kotlin.types.SubstitutionUtils
-import org.jetbrains.kotlin.types.Variance
-import org.jetbrains.kotlin.di.InjectorForMacros
-import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.types.JetType
-import org.jetbrains.kotlin.resolve.JetModuleUtil
 import org.jetbrains.kotlin.psi.JetPsiFactory
 import org.jetbrains.kotlin.resolve.BindingTraceContext
-import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
-import org.jetbrains.kotlin.resolve.scopes.JetScope
+import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.scopes.ChainedScope
+import org.jetbrains.kotlin.resolve.scopes.JetScope
+import org.jetbrains.kotlin.types.JetType
+import org.jetbrains.kotlin.types.SubstitutionUtils
 import org.jetbrains.kotlin.types.TypeUtils
+import org.jetbrains.kotlin.types.Variance
+import java.util.HashMap
 
 public object HeuristicSignatures {
     private val signatures = HashMap<Pair<FqName, Name>, List<String>>()
@@ -92,7 +92,7 @@ public object HeuristicSignatures {
     private fun typeFromText(text: String, typeParameters: Collection<TypeParameterDescriptor>, moduleDescriptor: ModuleDescriptor, project: Project): JetType {
         val typeRef = JetPsiFactory(project).createType(text)
         val injector = InjectorForMacros(project, moduleDescriptor)
-        val rootPackagesScope = JetModuleUtil.getSubpackagesOfRootScope(moduleDescriptor)
+        val rootPackagesScope = SubpackagesScope(moduleDescriptor, FqName.ROOT)
         val typeParametersScope = TypeParametersScope(typeParameters)
         val scope = ChainedScope(moduleDescriptor, "Root packages + type parameters", typeParametersScope, rootPackagesScope)
         val type = injector.getTypeResolver().resolveType(scope, typeRef, BindingTraceContext(), false)
