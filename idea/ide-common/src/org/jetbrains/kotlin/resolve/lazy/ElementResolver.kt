@@ -318,11 +318,9 @@ public abstract class ElementResolver protected constructor(
             bodyResolver.resolvePropertyDelegate(DataFlowInfo.EMPTY, jetProperty, descriptor, propertyDelegate, propertyResolutionScope, propertyResolutionScope)
         }
 
-        val bodyResolveContext = BodyResolveContextForLazy(TopDownAnalysisMode.LocalDeclarations, object : Function<JetDeclaration, JetScope> {
-            override fun apply(declaration: JetDeclaration?): JetScope? {
-                assert(declaration!!.getParent() == jetProperty) { "Must be called only for property accessors, but called for " + declaration }
-                return resolveSession.getScopeProvider().getResolutionScopeForDeclaration(declaration)
-            }
+        val bodyResolveContext = BodyResolveContextForLazy(TopDownAnalysisMode.LocalDeclarations, { declaration ->
+            assert(declaration.getParent() == jetProperty) { "Must be called only for property accessors, but called for $declaration" }
+            resolveSession.getScopeProvider().getResolutionScopeForDeclaration(declaration)
         })
 
         bodyResolver.resolvePropertyAccessors(bodyResolveContext, jetProperty, descriptor)
@@ -447,9 +445,8 @@ public abstract class ElementResolver protected constructor(
 
     private class BodyResolveContextForLazy(
             private val topDownAnalysisMode: TopDownAnalysisMode,
-            private val declaringScopes: Function<in JetDeclaration, JetScope>
+            private val declaringScopes: Function1<JetDeclaration, JetScope?> = { null }
     ) : BodiesResolveContext {
-
         override fun getFiles(): Collection<JetFile> = setOf()
 
         override fun getDeclaredClasses(): Map<JetClassOrObject, ClassDescriptorWithResolutionScopes> = mapOf()
@@ -462,7 +459,7 @@ public abstract class ElementResolver protected constructor(
 
         override fun getFunctions(): Map<JetNamedFunction, SimpleFunctionDescriptor> = mapOf()
 
-        override fun getDeclaringScopes() = declaringScopes as Function<JetDeclaration, JetScope>
+        override fun getDeclaringScope(declaration: JetDeclaration): JetScope? = declaringScopes(declaration)
 
         override fun getScripts(): Map<JetScript, ScriptDescriptor> = mapOf()
 
