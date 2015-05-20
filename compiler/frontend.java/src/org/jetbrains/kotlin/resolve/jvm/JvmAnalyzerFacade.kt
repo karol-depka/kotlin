@@ -54,6 +54,12 @@ public object JvmAnalyzerFacade : AnalyzerFacade<JvmResolverForModule, JvmPlatfo
     ): JvmResolverForModule {
         val (syntheticFiles, moduleContentScope) = moduleContent
         val project = moduleContext.project
+
+        val customPackageViewManager = PackageViewManagerProvider.getInstance(project)?.createPVM(moduleDescriptor, moduleInfo, moduleContext.storageManager)
+        if (customPackageViewManager != null) {
+            moduleDescriptor.setPackageViewManager(customPackageViewManager)
+        }
+
         val filesToAnalyze = getAllFilesToAnalyze(project, moduleInfo, syntheticFiles)
         val declarationProviderFactory = DeclarationProviderFactoryService.createDeclarationProviderFactory(
                 project, moduleContext.storageManager, filesToAnalyze,

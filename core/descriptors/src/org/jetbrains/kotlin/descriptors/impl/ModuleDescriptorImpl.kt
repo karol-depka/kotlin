@@ -23,7 +23,6 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.scopes.JetScope
 import org.jetbrains.kotlin.resolve.scopes.LazyScopeAdapter
-import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.storage.StorageManager
 import java.util.ArrayList
 import java.util.LinkedHashSet
@@ -53,8 +52,10 @@ public class ModuleDescriptorImpl(
     }
 
     private val dependencies: MutableList<ModuleDescriptorImpl> = ArrayList()
-    //TODO_R:!!
-    override var packageViewManager: PackageViewManager = PackageViewManagerImpl(this, LockBasedStorageManager.NO_LOCKS)
+    private var _packageViewManager: PackageViewManager? = null
+
+    override val packageViewManager: PackageViewManager
+        get() = _packageViewManager!!
 
     private var packageFragmentProviderForModuleContent: PackageFragmentProvider? = null
 
@@ -92,7 +93,14 @@ public class ModuleDescriptorImpl(
     public fun initialize(providerForModuleContent: PackageFragmentProvider) {
         assert(!isInitialized) { "Attempt to initialize module $id twice" }
         this.packageFragmentProviderForModuleContent = providerForModuleContent
-        this.packageViewManager = packageViewManager
+        if (this._packageViewManager == null) {
+            this._packageViewManager = PackageViewManagerImpl(this, storageManager)
+        }
+    }
+
+    public fun setPackageViewManager(packageViewManager: PackageViewManager) {
+        assert(!isInitialized) { "Custom package view manager should be set before module content is initialized" }
+        this._packageViewManager = packageViewManager
     }
 
     val packageFragmentProvider: PackageFragmentProvider
