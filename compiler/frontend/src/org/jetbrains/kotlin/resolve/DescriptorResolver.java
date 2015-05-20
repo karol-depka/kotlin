@@ -46,6 +46,7 @@ import org.jetbrains.kotlin.resolve.scopes.JetScope;
 import org.jetbrains.kotlin.resolve.scopes.JetScopeUtils;
 import org.jetbrains.kotlin.resolve.scopes.WritableScope;
 import org.jetbrains.kotlin.resolve.scopes.WritableScopeImpl;
+import org.jetbrains.kotlin.storage.LockBasedStorageManager;
 import org.jetbrains.kotlin.storage.StorageManager;
 import org.jetbrains.kotlin.types.*;
 import org.jetbrains.kotlin.types.checker.JetTypeChecker;
@@ -1209,13 +1210,13 @@ public class DescriptorResolver {
     public static void resolvePackageHeader(
             @NotNull JetPackageDirective packageDirective,
             @NotNull ModuleDescriptor module,
-            @NotNull BindingTrace trace,
-            @NotNull StorageManager storageManager
+            @NotNull BindingTrace trace
     ) {
         for (JetSimpleNameExpression nameExpression : packageDirective.getPackageNames()) {
             FqName fqName = packageDirective.getFqName(nameExpression);
 
-            PackageViewDescriptor packageView = new LazyPackageViewWrapper(fqName, module, storageManager);
+            //TODO_R: !!!
+            PackageViewDescriptor packageView = new LazyPackageViewWrapper(fqName, module, LockBasedStorageManager.NO_LOCKS);
             trace.record(REFERENCE_TARGET, nameExpression, packageView);
 
             PackageViewDescriptor parentPackageView = packageView.getContainingDeclaration();
