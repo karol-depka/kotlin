@@ -39,6 +39,7 @@ public val LIBRARY_NAME_PREFIX: String = "library "
 
 public abstract class IdeaModuleInfo : ModuleInfo {
     abstract fun contentScope(): GlobalSearchScope
+    abstract override fun dependencies(): List<IdeaModuleInfo>
 }
 
 private fun orderEntryToModuleInfo(project: Project, orderEntry: OrderEntry, productionOnly: Boolean): List<IdeaModuleInfo> {

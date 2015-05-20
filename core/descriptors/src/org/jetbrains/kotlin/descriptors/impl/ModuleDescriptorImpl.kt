@@ -51,7 +51,7 @@ public class ModuleDescriptorImpl(
         isSealed = true
     }
 
-    private val dependencies: MutableList<ModuleDescriptorImpl> = ArrayList()
+    public  val dependencies: MutableList<ModuleDescriptorImpl> = ArrayList()
     private var _packageViewManager: PackageViewManager? = null
 
     override val packageViewManager: PackageViewManager

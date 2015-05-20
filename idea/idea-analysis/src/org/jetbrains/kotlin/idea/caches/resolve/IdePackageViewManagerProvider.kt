@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.idea.stubindex.PackageIndexUtil
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.storage.StorageManager
+import java.util.*
 
 public class IdePackageViewManagerProvider(private val project: Project) : PackageViewManagerProvider {
     override fun createPVM(moduleDescriptor: ModuleDescriptor, info: ModuleInfo, storageManager: StorageManager): PackageViewManager {
@@ -47,10 +48,23 @@ public class IdePackageViewManagerProvider(private val project: Project) : Packa
         return object : PackageViewManager {
             private val packages = storageManager.createMemoizedFunctionWithNullableValues { fqName: FqName ->
                 if (packageExistsInJavaOrKotlin(project, moduleWithDependenciesScope, fqName)) {
+                    val dependencies = ideaModuleInfo.dependencies().toHashSet()
+                    val set = HashSet<IdeaModuleInfo>()
+                    val query = DirectoryIndex.getInstance(project).getDirectoriesByPackageName(fqName.asString(), false)
+                    query.forEach(Processor { vFile ->
+                        if (vFile in moduleWithDependenciesScope) {
+                            val moduleInfo = getModuleInfoByVirtualFile(project, vFile, isDecompiledFile = false)
+                            if (moduleInfo in dependencies) {
+                                set.add(moduleInfo)
+                            }
+                        }
+                        //TODO_R: stop if all dependencies occured
+                        true
+                    })
                     delegate.getPackage(fqName)
                 }
                 else if (fqName == bfqn) {
-                    PackageViewDescriptorImpl(moduleDescriptor, fqName, listOf(bpf))
+                    delegate.getPackage(fqName)
                 }
                 else {
                     null
