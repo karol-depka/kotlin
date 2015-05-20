@@ -19,7 +19,6 @@ package org.jetbrains.kotlin.serialization.builtins
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.createBuiltInPackageFragmentProvider
 import org.jetbrains.kotlin.codegen.forTestCompile.ForTestCompileRuntime
-import org.jetbrains.kotlin.descriptors.impl.initialize
 import org.jetbrains.kotlin.jvm.compiler.LoadDescriptorUtil.TEST_PACKAGE_FQNAME
 import org.jetbrains.kotlin.serialization.deserialization.FlexibleTypeCapabilitiesDeserializer
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
@@ -41,16 +40,15 @@ public class BuiltInsSerializerTest : TestCaseWithTmpdir() {
 
         val module = JetTestUtils.createEmptyModule("<module>")
 
-        val storageManager = LockBasedStorageManager()
         val packageFragmentProvider = createBuiltInPackageFragmentProvider(
-                storageManager, module, setOf(TEST_PACKAGE_FQNAME),
+                LockBasedStorageManager(), module, setOf(TEST_PACKAGE_FQNAME),
                 FlexibleTypeCapabilitiesDeserializer.ThrowException
         ) {
             val file = File(tmpdir, it)
             if (file.exists()) FileInputStream(file) else null
         }
 
-        module.initialize(packageFragmentProvider, storageManager)
+        module.initialize(packageFragmentProvider)
         module.addDependencyOnModule(module)
         module.addDependencyOnModule(KotlinBuiltIns.getInstance().getBuiltInsModule())
         module.seal()

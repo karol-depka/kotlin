@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor;
 import org.jetbrains.kotlin.descriptors.annotations.Annotations;
-import org.jetbrains.kotlin.descriptors.impl.ImplPackage;
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl;
 import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl;
 import org.jetbrains.kotlin.name.FqName;
@@ -114,9 +113,8 @@ public class KotlinBuiltIns {
                 Name.special("<built-ins module>"), Collections.<ImportPath>emptyList(), PlatformToKotlinClassMap.EMPTY
         );
 
-        LockBasedStorageManager storageManager = new LockBasedStorageManager();
         PackageFragmentProvider packageFragmentProvider = BuiltinsPackage.createBuiltInPackageFragmentProvider(
-                storageManager, builtInsModule, Collections.singleton(BUILT_INS_PACKAGE_FQ_NAME),
+                new LockBasedStorageManager(), builtInsModule, Collections.singleton(BUILT_INS_PACKAGE_FQ_NAME),
                 FlexibleTypeCapabilitiesDeserializer.ThrowException.INSTANCE$, new Function1<String, InputStream>() {
                     @Override
                     public InputStream invoke(String path) {
@@ -125,7 +123,7 @@ public class KotlinBuiltIns {
                 }
         );
 
-        ImplPackage.initialize(builtInsModule, packageFragmentProvider, storageManager);
+        builtInsModule.initialize(packageFragmentProvider);
         builtInsModule.addDependencyOnModule(builtInsModule);
         builtInsModule.seal();
 

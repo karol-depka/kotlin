@@ -47,7 +47,6 @@ import org.jetbrains.kotlin.context.ContextPackage;
 import org.jetbrains.kotlin.context.GlobalContextImpl;
 import org.jetbrains.kotlin.descriptors.ScriptDescriptor;
 import org.jetbrains.kotlin.descriptors.impl.CompositePackageFragmentProvider;
-import org.jetbrains.kotlin.descriptors.impl.ImplPackage;
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl;
 import org.jetbrains.kotlin.di.InjectorForReplWithJava;
 import org.jetbrains.kotlin.idea.JetLanguage;
@@ -144,12 +143,12 @@ public class ReplInterpreter {
         this.topDownAnalyzer = injector.getLazyTopDownAnalyzerForTopLevel();
         this.resolveSession = injector.getResolveSession();
 
-        ImplPackage.initialize(module, new CompositePackageFragmentProvider(
+        module.initialize(new CompositePackageFragmentProvider(
                 Arrays.asList(
                         injector.getResolveSession().getPackageFragmentProvider(),
                         injector.getJavaDescriptorResolver().getPackageFragmentProvider()
                 )
-        ), context.getStorageManager());
+        ));
         module.addDependencyOnModule(module);
         module.addDependencyOnModule(KotlinBuiltIns.getInstance().getBuiltInsModule());
         module.seal();

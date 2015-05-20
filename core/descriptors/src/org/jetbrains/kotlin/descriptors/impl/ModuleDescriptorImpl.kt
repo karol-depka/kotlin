@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.platform.PlatformToKotlinClassMap
 import org.jetbrains.kotlin.resolve.ImportPath
 import org.jetbrains.kotlin.resolve.scopes.JetScope
 import org.jetbrains.kotlin.resolve.scopes.LazyScopeAdapter
+import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.storage.StorageManager
 import java.util.ArrayList
 import java.util.LinkedHashSet
@@ -56,7 +57,8 @@ public class ModuleDescriptorImpl(
     }
 
     private val dependencies: MutableList<ModuleDescriptorImpl> = ArrayList()
-    override var packageViewManager: PackageViewManager by Delegates.notNull()
+    //TODO_R:!!
+    override var packageViewManager: PackageViewManager = PackageViewManagerImpl(this, LockBasedStorageManager.NO_LOCKS)
 
     private var packageFragmentProviderForModuleContent: PackageFragmentProvider? = null
 
@@ -91,7 +93,7 @@ public class ModuleDescriptorImpl(
      * Call initialize() to set module contents. Uninitialized module cannot be queried for its contents.
      * Initialize() and seal() can be called in any order.
      */
-    public fun initialize(providerForModuleContent: PackageFragmentProvider, packageViewManager: PackageViewManager) {
+    public fun initialize(providerForModuleContent: PackageFragmentProvider) {
         assert(!isInitialized) { "Attempt to initialize module $id twice" }
         this.packageFragmentProviderForModuleContent = providerForModuleContent
         this.packageViewManager = packageViewManager
@@ -156,10 +158,4 @@ public class LazyPackageViewWrapper(
     override fun getFragments(): MutableList<PackageFragmentDescriptor> {
         return delegate?.getFragments() ?: listOf()
     }
-}
-
-//TODO_R: remove this overload, it's temporary
-public deprecated("This is temporary") fun ModuleDescriptorImpl.initialize(
-        providerForModuleContent: PackageFragmentProvider, storageManager: StorageManager) {
-    initialize(providerForModuleContent, PackageViewManagerImpl(this, storageManager))
 }

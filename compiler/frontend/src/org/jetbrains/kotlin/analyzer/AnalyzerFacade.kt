@@ -16,19 +16,19 @@
 
 package org.jetbrains.kotlin.analyzer
 
-import com.intellij.openapi.project.Project
-import com.intellij.psi.search.GlobalSearchScope
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.context.GlobalContext
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
-import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.platform.PlatformToKotlinClassMap
-import org.jetbrains.kotlin.psi.JetFile
-import org.jetbrains.kotlin.resolve.ImportPath
 import org.jetbrains.kotlin.resolve.lazy.ResolveSession
-import java.util.ArrayList
+import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import java.util.HashMap
+import org.jetbrains.kotlin.resolve.ImportPath
+import org.jetbrains.kotlin.platform.PlatformToKotlinClassMap
+import com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.context.GlobalContext
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
+import java.util.ArrayList
+import org.jetbrains.kotlin.psi.JetFile
+import com.intellij.psi.search.GlobalSearchScope
 import kotlin.properties.Delegates
 
 public trait ResolverForModule {
@@ -129,8 +129,7 @@ public trait AnalyzerFacade<A : ResolverForModule, in P : PlatformAnalysisParame
             val descriptorByModule = HashMap<M, ModuleDescriptorImpl>()
             modules.forEach {
                 module ->
-                val descriptor = ModuleDescriptorImpl(module.name, defaultImports, platformToKotlinClassMap)
-                descriptorByModule[module] = descriptor
+                descriptorByModule[module] = ModuleDescriptorImpl(module.name, defaultImports, platformToKotlinClassMap)
             }
             return ResolverForProjectImpl(descriptorByModule, delegateResolver)
         }

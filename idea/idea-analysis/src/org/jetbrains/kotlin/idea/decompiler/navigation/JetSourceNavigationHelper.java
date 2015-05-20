@@ -43,7 +43,6 @@ import org.jetbrains.kotlin.context.ContextPackage;
 import org.jetbrains.kotlin.context.GlobalContextImpl;
 import org.jetbrains.kotlin.descriptors.CallableDescriptor;
 import org.jetbrains.kotlin.descriptors.ClassDescriptor;
-import org.jetbrains.kotlin.descriptors.impl.ImplPackage;
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl;
 import org.jetbrains.kotlin.di.InjectorForLazyResolve;
 import org.jetbrains.kotlin.idea.caches.resolve.JsProjectDetector;
@@ -257,7 +256,7 @@ public class JetSourceNavigationHelper {
                 AdditionalCheckerProvider.DefaultProvider.INSTANCE$,
                 new DynamicTypesSettings()).getResolveSession();
 
-        ImplPackage.initialize(moduleDescriptor, resolveSession.getPackageFragmentProvider(), globalContext.getStorageManager());
+        moduleDescriptor.initialize(resolveSession.getPackageFragmentProvider());
         return resolveSession;
     }
 

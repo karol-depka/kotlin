@@ -23,7 +23,6 @@ import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.codegen.forTestCompile.ForTestCompileRuntime
 import org.jetbrains.kotlin.context.GlobalContext
-import org.jetbrains.kotlin.descriptors.impl.initialize
 import org.jetbrains.kotlin.di.InjectorForTopDownAnalyzerForJvm
 import org.jetbrains.kotlin.jvm.compiler.LoadDescriptorUtil
 import org.jetbrains.kotlin.load.java.JvmAnnotationNames
@@ -67,7 +66,7 @@ public abstract class AbstractLocalClassProtoTest : TestCaseWithTmpdir() {
                 environment.project, params, CliLightClassGenerationSupport.NoScopeRecordCliBindingTrace(), module,
                 providerFactory, GlobalSearchScope.allScope(environment.project)
         )
-        module.initialize(injector.getJavaDescriptorResolver().packageFragmentProvider, globalContext.storageManager)
+        module.initialize(injector.getJavaDescriptorResolver().packageFragmentProvider)
 
         val components = injector.getDeserializationComponentsForJava().components
 
