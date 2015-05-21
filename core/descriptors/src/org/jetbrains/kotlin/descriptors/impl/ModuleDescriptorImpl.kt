@@ -91,12 +91,12 @@ public class ModuleDescriptorImpl(
         packageFragmentProviderForModuleContent = providerForModuleContent
     }
 
-    public fun getPackage(fqName: FqName): PackageViewDescriptor? {
+    override fun getPackage(fqName: FqName): PackageViewDescriptor? {
         val fragments = packageFragmentProviderForWholeModuleWithDependencies.getPackageFragments(fqName)
         return if (!fragments.isEmpty()) PackageViewDescriptorImpl(this, fqName, fragments) else null
     }
 
-    public fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> {
+    override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> {
         return packageFragmentProviderForWholeModuleWithDependencies.getSubPackagesOf(fqName, nameFilter)
     }
 
