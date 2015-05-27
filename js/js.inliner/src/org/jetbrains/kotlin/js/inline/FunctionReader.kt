@@ -32,12 +32,10 @@ import org.jetbrains.kotlin.js.resolve.diagnostics.ErrorsJs
 import org.jetbrains.kotlin.js.translate.context.Namer
 import org.jetbrains.kotlin.js.translate.context.TranslationContext
 import org.jetbrains.kotlin.js.translate.reference.CallExpressionTranslator
-import org.jetbrains.kotlin.js.translate.utils.JsDescriptorUtils
 import org.jetbrains.kotlin.js.translate.utils.JsDescriptorUtils.getExternalModuleName
 import org.jetbrains.kotlin.psi.JetCallExpression
 import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.resolve.inline.InlineStrategy
-import org.jetbrains.kotlin.utils.KotlinJavascriptMetadataUtils
 import org.jetbrains.kotlin.utils.LibraryUtils
 import java.io.File
 
@@ -95,7 +93,7 @@ public class FunctionReader(private val context: TranslationContext) {
 
     public fun contains(call: JsInvocation): Boolean {
         val descriptor = call.descriptor ?: return false
-        val moduleName = JsDescriptorUtils.getExternalModuleName(descriptor)
+        val moduleName = getExternalModuleName(descriptor)
         val currentModuleName = context.getConfig().getModuleId()
         return moduleName != null && currentModuleName != moduleName
     }
@@ -108,7 +106,7 @@ public class FunctionReader(private val context: TranslationContext) {
 
         if (function == null) {
             val psiElement = call.psiElement
-            if (psiElement !is JetCallExpression) throw AssertionError("Expected JetCallExpression, got $psiElement" )
+            if (psiElement !is JetCallExpression) throw AssertionError("Expected JetCallExpression, got $psiElement")
             val diagnostic = ErrorsJs.COULD_NOT_INLINE_FROM_LIBRARY.on(psiElement)
             context.bindingTrace().report(diagnostic)
             failedToLoad.add(call)
