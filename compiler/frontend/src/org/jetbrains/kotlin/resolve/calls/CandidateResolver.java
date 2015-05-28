@@ -31,8 +31,8 @@ import org.jetbrains.kotlin.resolve.*;
 import org.jetbrains.kotlin.resolve.calls.callUtil.CallUtilPackage;
 import org.jetbrains.kotlin.resolve.calls.context.CallCandidateResolutionContext;
 import org.jetbrains.kotlin.resolve.calls.context.CallResolutionContext;
-import org.jetbrains.kotlin.resolve.calls.context.CheckValueArgumentsMode;
 import org.jetbrains.kotlin.resolve.calls.context.ResolutionContext;
+import org.jetbrains.kotlin.resolve.calls.context.ResolveArgumentsMode;
 import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystem;
 import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystemImpl;
 import org.jetbrains.kotlin.resolve.calls.model.*;
@@ -58,7 +58,7 @@ import java.util.*;
 import static org.jetbrains.kotlin.diagnostics.Errors.PROJECTION_ON_NON_CLASS_TYPE_ARGUMENT;
 import static org.jetbrains.kotlin.diagnostics.Errors.SUPER_CANT_BE_EXTENSION_RECEIVER;
 import static org.jetbrains.kotlin.resolve.calls.ArgumentTypeResolver.getLastElementDeparenthesized;
-import static org.jetbrains.kotlin.resolve.calls.CallResolverUtil.ResolveArgumentsMode.SHAPE_FUNCTION_ARGUMENTS;
+import static org.jetbrains.kotlin.resolve.calls.context.ResolveArgumentsMode.SHAPE_FUNCTION_ARGUMENTS;
 import static org.jetbrains.kotlin.resolve.calls.CallResolverUtil.getEffectiveExpectedType;
 import static org.jetbrains.kotlin.resolve.calls.CallTransformer.CallForImplicitInvoke;
 import static org.jetbrains.kotlin.resolve.calls.inference.constraintPosition.ConstraintPositionKind.RECEIVER_POSITION;
@@ -105,7 +105,7 @@ public class CandidateResolver {
             context.tracing.invisibleMember(context.trace, invisibleMember);
         }
 
-        if (task.checkArguments == CheckValueArgumentsMode.ENABLED) {
+        if (task.resolveArguments != ResolveArgumentsMode.DISABLED) {
             Set<ValueArgument> unmappedArguments = Sets.newLinkedHashSet();
             ValueArgumentsToParametersMapper.Status argumentMappingStatus = ValueArgumentsToParametersMapper.mapValueArgumentsToParameters(
                     context.call, context.tracing, candidateCall, unmappedArguments);
@@ -358,7 +358,7 @@ public class CandidateResolver {
             @NotNull TypeSubstitutor substitutor,
             @NotNull ConstraintSystem constraintSystem,
             @NotNull CallCandidateResolutionContext<?> context,
-            @NotNull CallResolverUtil.ResolveArgumentsMode resolveFunctionArgumentBodies) {
+            @NotNull ResolveArgumentsMode resolveFunctionArgumentBodies) {
 
         JetType effectiveExpectedType = getEffectiveExpectedType(valueParameterDescriptor, valueArgument);
         JetExpression argumentExpression = valueArgument.getArgumentExpression();
@@ -398,7 +398,7 @@ public class CandidateResolver {
     @NotNull
     private <D extends CallableDescriptor> ValueArgumentsCheckingResult checkAllValueArguments(
             @NotNull CallCandidateResolutionContext<D> context,
-            @NotNull CallResolverUtil.ResolveArgumentsMode resolveFunctionArgumentBodies) {
+            @NotNull ResolveArgumentsMode resolveFunctionArgumentBodies) {
         return checkAllValueArguments(context, context.candidateCall.getTrace(), resolveFunctionArgumentBodies);
     }
 
@@ -406,7 +406,7 @@ public class CandidateResolver {
     public <D extends CallableDescriptor> ValueArgumentsCheckingResult checkAllValueArguments(
             @NotNull CallCandidateResolutionContext<D> context,
             @NotNull BindingTrace trace,
-            @NotNull CallResolverUtil.ResolveArgumentsMode resolveFunctionArgumentBodies
+            @NotNull ResolveArgumentsMode resolveFunctionArgumentBodies
     ) {
         ValueArgumentsCheckingResult checkingResult = checkValueArgumentTypes(
                 context, context.candidateCall, trace, resolveFunctionArgumentBodies);
@@ -449,7 +449,7 @@ public class CandidateResolver {
             @NotNull CallResolutionContext<C> context,
             @NotNull MutableResolvedCall<D> candidateCall,
             @NotNull BindingTrace trace,
-            @NotNull CallResolverUtil.ResolveArgumentsMode resolveFunctionArgumentBodies) {
+            @NotNull ResolveArgumentsMode resolveFunctionArgumentBodies) {
         ResolutionStatus resultStatus = SUCCESS;
         List<JetType> argumentTypes = Lists.newArrayList();
         MutableDataFlowInfoForArguments infoForArguments = candidateCall.getDataFlowInfoForArguments();
