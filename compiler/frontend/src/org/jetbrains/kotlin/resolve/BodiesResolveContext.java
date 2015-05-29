@@ -49,9 +49,6 @@ public interface BodiesResolveContext {
     @Nullable
     JetScope getDeclaringScope(@NotNull JetDeclaration declaration);
 
-    @Nullable
-    ResolveTaskManager getResolveTaskManager();
-
     @NotNull
     DataFlowInfo getOuterDataFlowInfo();
 

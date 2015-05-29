@@ -105,7 +105,7 @@ public class LazyTopDownAnalyzer {
     }
 
     public fun analyzeDeclarations(topDownAnalysisMode: TopDownAnalysisMode, declarations: Collection<PsiElement>, outerDataFlowInfo: DataFlowInfo): TopDownAnalysisContext {
-        val c = TopDownAnalysisContext(topDownAnalysisMode, outerDataFlowInfo, declarationScopeProvider!!, null)
+        val c = TopDownAnalysisContext(topDownAnalysisMode, outerDataFlowInfo, declarationScopeProvider!!)
 
         val topLevelFqNames = HashMultimap.create<FqName, JetElement>()
 
