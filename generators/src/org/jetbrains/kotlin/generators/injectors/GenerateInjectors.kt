@@ -90,6 +90,7 @@ private fun generatorForLazyLocalClassifierAnalyzer() =
 
             publicField<LazyTopDownAnalyzer>()
 
+            field<DummyResolveManager>()
             field<NoTopLevelDescriptorProvider>()
             field<NoFileScopeProvider>()
             field<DeclarationScopeProviderForLocalClassifierAnalyzer>()
@@ -104,6 +105,7 @@ private fun generatorForLazyBodyResolve() =
             parameter<BindingTrace>()
             parameter<AdditionalCheckerProvider>(useAsContext = true)
             parameter<DynamicTypesSettings>()
+            parameter<ResolveTaskManager>()
 
             publicField<LazyTopDownAnalyzerForTopLevel>()
         }
@@ -114,6 +116,7 @@ private fun generatorForTopDownAnalyzerForJs() =
 
             publicField<LazyTopDownAnalyzerForTopLevel>()
 
+            field<DummyResolveManager>()
             field<KotlinJsCheckerProvider>(useAsContext = true)
             field<DynamicTypesAllowed>()
         }
@@ -121,6 +124,8 @@ private fun generatorForTopDownAnalyzerForJs() =
 private fun generatorForTopDownAnalyzerForJvm() =
         generator("compiler/frontend.java/src", DI_DEFAULT_PACKAGE, "InjectorForTopDownAnalyzerForJvm") {
             commonForJavaTopDownAnalyzer()
+
+            field<DummyResolveManager>()
         }
 
 private fun generatorForRuntimeDescriptorLoader() =
@@ -179,6 +184,8 @@ private fun generatorForReplWithJava() =
         generator("compiler/frontend.java/src", DI_DEFAULT_PACKAGE, "InjectorForReplWithJava") {
             commonForJavaTopDownAnalyzer()
             parameter<ScopeProvider.AdditionalFileScopeProvider>()
+
+            field<DummyResolveManager>()
         }
 
 private fun generatorForMacro() =

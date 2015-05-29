@@ -74,7 +74,7 @@ fun createModuleResolverProvider(
     val resolveSessionsForBodyByDescriptor = moduleDescriptors.keysToMap {
         descriptor ->
         val analyzer = resolverForProject.resolverForModuleDescriptor(descriptor)
-        ResolveSessionForBodies(project, analyzer.lazyResolveSession)
+        ResolveSessionForBodies(project, analyzer.lazyResolveSession, IDEResolveTaskManagerImpl(globalContext, project, analyzer.lazyResolveSession))
     }
     return ModuleResolverProviderImpl(
             resolverForProject,

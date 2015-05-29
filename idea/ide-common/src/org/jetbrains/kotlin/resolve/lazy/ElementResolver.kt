@@ -16,8 +16,6 @@
 
 package org.jetbrains.kotlin.resolve.lazy
 
-import com.google.common.base.Function
-import com.google.common.base.Functions
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analyzer.computeTypeInContext
 import org.jetbrains.kotlin.cfg.JetFlowInformationProvider
@@ -119,7 +117,7 @@ public abstract class ElementResolver protected constructor(
         else
             StatementFilter.NONE
 
-        val trace : BindingTrace = when (resolveElement) {
+        val trace: BindingTrace = when (resolveElement) {
             is JetNamedFunction -> functionAdditionalResolve(resolveSession, resolveElement, file, statementFilter)
 
             is JetClassInitializer -> initializerAdditionalResolve(resolveSession, resolveElement, file, statementFilter)
@@ -348,6 +346,8 @@ public abstract class ElementResolver protected constructor(
     }
 
     private fun functionAdditionalResolve(resolveSession: ResolveSession, namedFunction: JetNamedFunction, file: JetFile, statementFilter: StatementFilter): BindingTrace {
+        assert(statementFilter != StatementFilter.NONE)
+
         val trace = createDelegationTrace(namedFunction)
 
         val scope = resolveSession.getScopeProvider().getResolutionScopeForDeclaration(namedFunction)
@@ -424,8 +424,7 @@ public abstract class ElementResolver protected constructor(
     }
 
     private fun getExpressionMemberScope(resolveSession: ResolveSession, expression: JetExpression): JetScope? {
-        val trace = resolveSession.getStorageManager().createSafeTrace(
-                DelegatingBindingTrace(resolveSession.getBindingContext(), "trace to resolve a member scope of expression", expression))
+        val trace = createDelegationTrace(expression)
 
         if (BindingContextUtils.isExpressionWithValidReference(expression, resolveSession.getBindingContext())) {
             val qualifiedExpressionResolver = resolveSession.getQualifiedExpressionResolver()
@@ -504,5 +503,7 @@ public abstract class ElementResolver protected constructor(
         override fun getOuterDataFlowInfo() = DataFlowInfo.EMPTY
 
         override fun getTopDownAnalysisMode() = topDownAnalysisMode
+
+        override fun getResolveTaskManager() = null
     }
 }

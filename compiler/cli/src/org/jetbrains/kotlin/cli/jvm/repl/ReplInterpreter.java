@@ -127,7 +127,7 @@ public class ReplInterpreter {
         );
 
         this.topDownAnalysisContext = new TopDownAnalysisContext(TopDownAnalysisMode.LocalDeclarations, DataFlowInfo.EMPTY,
-                                                                 injector.getResolveSession().getScopeProvider());
+                                                                 injector.getResolveSession().getScopeProvider(), null);
         this.topDownAnalyzer = injector.getLazyTopDownAnalyzerForTopLevel();
         this.resolveSession = injector.getResolveSession();
 

@@ -24,12 +24,15 @@ import com.intellij.psi.util.PsiModificationTracker;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.caches.resolve.IDEResolveTaskManager;
 import org.jetbrains.kotlin.idea.stubindex.JetProbablyNothingFunctionShortNameIndex;
 import org.jetbrains.kotlin.idea.stubindex.JetProbablyNothingPropertyShortNameIndex;
 import org.jetbrains.kotlin.psi.JetElement;
 import org.jetbrains.kotlin.psi.JetFile;
+import org.jetbrains.kotlin.psi.JetNamedFunction;
 import org.jetbrains.kotlin.resolve.AdditionalCheckerProvider;
 import org.jetbrains.kotlin.resolve.BindingContext;
+import org.jetbrains.kotlin.resolve.ResolveTaskManager;
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode;
 import org.jetbrains.kotlin.resolve.lazy.ElementResolver;
 import org.jetbrains.kotlin.resolve.lazy.ProbablyNothingCallableNames;
@@ -41,11 +44,13 @@ import java.util.Collection;
 
 public class ResolveElementCache extends ElementResolver {
     private final Project project;
+    private final IDEResolveTaskManager resolveTaskManager;
     private final CachedValue<MemoizedFunctionToNotNull<JetElement, BindingContext>> additionalResolveCache;
 
-    public ResolveElementCache(ResolveSession resolveSession, Project project) {
+    public ResolveElementCache(ResolveSession resolveSession, Project project, final IDEResolveTaskManager resolveTaskManager) {
         super(resolveSession);
         this.project = project;
+        this.resolveTaskManager = resolveTaskManager;
 
         // Recreate internal cache after change of modification count
         this.additionalResolveCache =
@@ -59,6 +64,11 @@ public class ResolveElementCache extends ElementResolver {
                                         manager.createSoftlyRetainedMemoizedFunction(new Function1<JetElement, BindingContext>() {
                                             @Override
                                             public BindingContext invoke(JetElement jetElement) {
+                                                if (jetElement instanceof JetNamedFunction) {
+                                                    return resolveTaskManager.resolveFunctionBody((JetNamedFunction) jetElement)
+                                                            .getResultTrace().getBindingContext();
+                                                }
+
                                                 return performElementAdditionalResolve(jetElement, jetElement, BodyResolveMode.FULL);
                                             }
                                         });
@@ -79,6 +89,10 @@ public class ResolveElementCache extends ElementResolver {
 
     @Override
     public boolean hasElementAdditionalResolveCached(@NotNull JetElement jetElement) {
+        if (jetElement instanceof JetNamedFunction) {
+            if (resolveTaskManager.hasElementAdditionalResolveCached((JetNamedFunction) jetElement)) return true;
+        }
+
         if (!additionalResolveCache.hasUpToDateValue()) return false;
         return additionalResolveCache.getValue().isComputed(jetElement);
     }

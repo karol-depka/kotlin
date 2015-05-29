@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.lexer.JetTokens;
 import org.jetbrains.kotlin.psi.*;
+import org.jetbrains.kotlin.psi.psiUtil.PsiUtilPackage;
 import org.jetbrains.kotlin.resolve.calls.CallResolver;
 import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker;
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall;
@@ -706,19 +707,29 @@ public class BodyResolver {
         return scope;
     }
 
-    private void resolveFunctionBodies(@NotNull BodiesResolveContext c) {
+    public void resolveFunctionBodies(@NotNull BodiesResolveContext c) {
         for (Map.Entry<JetNamedFunction, SimpleFunctionDescriptor> entry : c.getFunctions().entrySet()) {
             JetNamedFunction declaration = entry.getKey();
-            SimpleFunctionDescriptor descriptor = entry.getValue();
 
-            computeDeferredType(descriptor.getReturnType());
+            ResolveTaskManager resolveTaskManager = c.getResolveTaskManager();
 
-            JetScope declaringScope = c.getDeclaringScope(declaration);
-            assert declaringScope != null;
+            JetScope scope = c.getDeclaringScope(declaration);
+            assert scope != null : "Scope is null: " + PsiUtilPackage.getElementTextWithContext(declaration);
 
-            resolveFunctionBody(c.getOuterDataFlowInfo(), trace, declaration, descriptor, declaringScope);
+            if (resolveTaskManager != null && !(resolveTaskManager instanceof DummyResolveManager) &&
+                    !c.getTopDownAnalysisMode().getIsLocalDeclarations()) {
+                BodyResolveResult result = resolveTaskManager.resolveFunctionBody(declaration);
 
-            assert descriptor.getReturnType() != null;
+                // Check resolve context
+                assert result.getResolveContext().getDeclaringScope() == scope &&
+                       result.getResolveContext().getFunctionDescriptor() == entry.getValue() &&
+                       result.getResolveContext().getOuterDataFlowInfo() == c.getOuterDataFlowInfo();
+
+                result.getResultTrace().addAllMyDataTo(trace);
+            }
+            else {
+                resolveFunctionBody(c.getOuterDataFlowInfo(), trace, declaration, entry.getValue(), scope);
+            }
         }
     }
 
@@ -729,7 +740,11 @@ public class BodyResolver {
             @NotNull FunctionDescriptor functionDescriptor,
             @NotNull JetScope declaringScope
     ) {
+        computeDeferredType(functionDescriptor.getReturnType());
+
         resolveFunctionBody(outerDataFlowInfo, trace, function, functionDescriptor, declaringScope, null, null);
+
+        assert functionDescriptor.getReturnType() != null;
     }
 
     public void resolveFunctionBody(
