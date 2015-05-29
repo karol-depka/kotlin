@@ -720,7 +720,8 @@ public class BodyResolver {
             JetScope scope = c.getDeclaringScope(declaration);
             assert scope != null : "Scope is null: " + PsiUtilPackage.getElementTextWithContext(declaration);
 
-            if (!(resolveTaskManager instanceof DummyResolveManager) && !c.getTopDownAnalysisMode().getIsLocalDeclarations()) {
+            if (!c.getTopDownAnalysisMode().getIsLocalDeclarations() && !(resolveTaskManager instanceof DummyResolveManager) &&
+                expressionTypingServices.getStatementFilter() != StatementFilter.NONE) {
                 BodyResolveResult result = resolveTaskManager.resolveFunctionBody(declaration);
 
                 // Check resolve context
