@@ -66,6 +66,7 @@ public class BodyResolver {
     private FunctionAnalyzerExtension functionAnalyzerExtension;
     private AdditionalCheckerProvider additionalCheckerProvider;
     private ValueParameterResolver valueParameterResolver;
+    private ResolveTaskManager resolveTaskManager;
 
     //<editor-fold desc="Injector Setters">
     @Inject
@@ -123,6 +124,11 @@ public class BodyResolver {
         this.valueParameterResolver = valueParameterResolver;
     }
     //</editor-fold>
+
+    @Inject
+    public void setResolveTaskManager(ResolveTaskManager resolveTaskManager) {
+        this.resolveTaskManager = resolveTaskManager;
+    }
 
     private void resolveBehaviorDeclarationBodies(@NotNull BodiesResolveContext c) {
         resolveDelegationSpecifierLists(c);
@@ -711,13 +717,10 @@ public class BodyResolver {
         for (Map.Entry<JetNamedFunction, SimpleFunctionDescriptor> entry : c.getFunctions().entrySet()) {
             JetNamedFunction declaration = entry.getKey();
 
-            ResolveTaskManager resolveTaskManager = c.getResolveTaskManager();
-
             JetScope scope = c.getDeclaringScope(declaration);
             assert scope != null : "Scope is null: " + PsiUtilPackage.getElementTextWithContext(declaration);
 
-            if (resolveTaskManager != null && !(resolveTaskManager instanceof DummyResolveManager) &&
-                    !c.getTopDownAnalysisMode().getIsLocalDeclarations()) {
+            if (!(resolveTaskManager instanceof DummyResolveManager) && !c.getTopDownAnalysisMode().getIsLocalDeclarations()) {
                 BodyResolveResult result = resolveTaskManager.resolveFunctionBody(declaration);
 
                 // Check resolve context

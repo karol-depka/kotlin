@@ -190,7 +190,6 @@ public class InjectorForLazyBodyResolve {
         this.lazyTopDownAnalyzerForTopLevel.setKotlinCodeAnalyzer(analyzer);
         this.lazyTopDownAnalyzerForTopLevel.setLazyTopDownAnalyzer(lazyTopDownAnalyzer);
 
-        lazyTopDownAnalyzer.setBodyResolveTaskManager(resolveTaskManager);
         lazyTopDownAnalyzer.setBodyResolver(bodyResolver);
         lazyTopDownAnalyzer.setDeclarationResolver(declarationResolver);
         lazyTopDownAnalyzer.setDeclarationScopeProvider(declarationScopeProvider);
@@ -211,6 +210,7 @@ public class InjectorForLazyBodyResolve {
         bodyResolver.setDelegatedPropertyResolver(delegatedPropertyResolver);
         bodyResolver.setExpressionTypingServices(expressionTypingServices);
         bodyResolver.setFunctionAnalyzerExtension(functionAnalyzerExtension);
+        bodyResolver.setResolveTaskManager(resolveTaskManager);
         bodyResolver.setScriptBodyResolverResolver(scriptBodyResolver);
         bodyResolver.setTrace(bindingTrace);
         bodyResolver.setValueParameterResolver(valueParameterResolver);

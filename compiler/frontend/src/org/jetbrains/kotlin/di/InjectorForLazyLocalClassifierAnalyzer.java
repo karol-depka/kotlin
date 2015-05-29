@@ -185,7 +185,6 @@ public class InjectorForLazyLocalClassifierAnalyzer {
         this.overrideResolver = new OverrideResolver();
         this.varianceChecker = new VarianceChecker(bindingTrace);
 
-        this.lazyTopDownAnalyzer.setBodyResolveTaskManager(dummyResolveManager);
         this.lazyTopDownAnalyzer.setBodyResolver(bodyResolver);
         this.lazyTopDownAnalyzer.setDeclarationResolver(declarationResolver);
         this.lazyTopDownAnalyzer.setDeclarationScopeProvider(declarationScopeProviderForLocalClassifierAnalyzer);
@@ -211,6 +210,7 @@ public class InjectorForLazyLocalClassifierAnalyzer {
         bodyResolver.setDelegatedPropertyResolver(delegatedPropertyResolver);
         bodyResolver.setExpressionTypingServices(expressionTypingServices);
         bodyResolver.setFunctionAnalyzerExtension(functionAnalyzerExtension);
+        bodyResolver.setResolveTaskManager(dummyResolveManager);
         bodyResolver.setScriptBodyResolverResolver(scriptBodyResolver);
         bodyResolver.setTrace(bindingTrace);
         bodyResolver.setValueParameterResolver(valueParameterResolver);

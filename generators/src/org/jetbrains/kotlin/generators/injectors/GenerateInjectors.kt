@@ -229,6 +229,8 @@ private fun generatorForBodyResolve() =
             parameter<StatementFilter>()
 
             publicField<BodyResolver>()
+
+            field<DummyResolveManager>()
         }
 
 private fun generatorForLazyResolve() =

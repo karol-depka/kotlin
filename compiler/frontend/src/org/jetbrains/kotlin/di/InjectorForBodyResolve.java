@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.resolve.AdditionalCheckerProvider;
 import org.jetbrains.kotlin.resolve.validation.SymbolUsageValidator;
 import org.jetbrains.kotlin.resolve.StatementFilter;
 import org.jetbrains.kotlin.resolve.BodyResolver;
+import org.jetbrains.kotlin.resolve.DummyResolveManager;
 import org.jetbrains.kotlin.resolve.AnnotationResolver;
 import org.jetbrains.kotlin.resolve.calls.CallResolver;
 import org.jetbrains.kotlin.resolve.calls.ArgumentTypeResolver;
@@ -74,6 +75,7 @@ public class InjectorForBodyResolve {
     private final SymbolUsageValidator symbolUsageValidator;
     private final StatementFilter statementFilter;
     private final BodyResolver bodyResolver;
+    private final DummyResolveManager dummyResolveManager;
     private final AnnotationResolver annotationResolver;
     private final CallResolver callResolver;
     private final ArgumentTypeResolver argumentTypeResolver;
@@ -121,6 +123,7 @@ public class InjectorForBodyResolve {
         this.symbolUsageValidator = additionalCheckerProvider.getSymbolUsageValidator();
         this.statementFilter = statementFilter;
         this.bodyResolver = new BodyResolver();
+        this.dummyResolveManager = new DummyResolveManager();
         this.annotationResolver = new AnnotationResolver();
         this.callResolver = new CallResolver();
         this.argumentTypeResolver = new ArgumentTypeResolver();
@@ -159,6 +162,7 @@ public class InjectorForBodyResolve {
         this.bodyResolver.setDelegatedPropertyResolver(delegatedPropertyResolver);
         this.bodyResolver.setExpressionTypingServices(expressionTypingServices);
         this.bodyResolver.setFunctionAnalyzerExtension(functionAnalyzerExtension);
+        this.bodyResolver.setResolveTaskManager(dummyResolveManager);
         this.bodyResolver.setScriptBodyResolverResolver(scriptBodyResolver);
         this.bodyResolver.setTrace(bindingTrace);
         this.bodyResolver.setValueParameterResolver(valueParameterResolver);

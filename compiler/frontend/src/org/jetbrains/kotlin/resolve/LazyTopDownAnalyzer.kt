@@ -48,7 +48,6 @@ public class LazyTopDownAnalyzer {
     private var topLevelDescriptorProvider: TopLevelDescriptorProvider? = null
     private var fileScopeProvider: FileScopeProvider? = null
     private var declarationScopeProvider: DeclarationScopeProvider? = null
-    private var resolveTaskManager: ResolveTaskManager? = null
 
     Inject
     public fun setLazyDeclarationResolver(lazyDeclarationResolver: LazyDeclarationResolver) {
@@ -105,13 +104,8 @@ public class LazyTopDownAnalyzer {
         this.bodyResolver = bodyResolver
     }
 
-    Inject
-    public fun setBodyResolveTaskManager(resolveTaskManager: ResolveTaskManager) {
-        this.resolveTaskManager = resolveTaskManager
-    }
-
     public fun analyzeDeclarations(topDownAnalysisMode: TopDownAnalysisMode, declarations: Collection<PsiElement>, outerDataFlowInfo: DataFlowInfo): TopDownAnalysisContext {
-        val c = TopDownAnalysisContext(topDownAnalysisMode, outerDataFlowInfo, declarationScopeProvider!!, resolveTaskManager)
+        val c = TopDownAnalysisContext(topDownAnalysisMode, outerDataFlowInfo, declarationScopeProvider!!, null)
 
         val topLevelFqNames = HashMultimap.create<FqName, JetElement>()
 
