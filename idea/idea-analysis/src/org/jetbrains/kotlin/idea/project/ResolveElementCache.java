@@ -24,6 +24,7 @@ import com.intellij.psi.util.PsiModificationTracker;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.cfg.JetFlowInformationProvider;
 import org.jetbrains.kotlin.idea.caches.resolve.IDEResolveTaskManager;
 import org.jetbrains.kotlin.idea.stubindex.JetProbablyNothingFunctionShortNameIndex;
 import org.jetbrains.kotlin.idea.stubindex.JetProbablyNothingPropertyShortNameIndex;
@@ -32,7 +33,7 @@ import org.jetbrains.kotlin.psi.JetFile;
 import org.jetbrains.kotlin.psi.JetNamedFunction;
 import org.jetbrains.kotlin.resolve.AdditionalCheckerProvider;
 import org.jetbrains.kotlin.resolve.BindingContext;
-import org.jetbrains.kotlin.resolve.ResolveTaskManager;
+import org.jetbrains.kotlin.resolve.DelegatingBindingTrace;
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode;
 import org.jetbrains.kotlin.resolve.lazy.ElementResolver;
 import org.jetbrains.kotlin.resolve.lazy.ProbablyNothingCallableNames;
@@ -52,6 +53,25 @@ public class ResolveElementCache extends ElementResolver {
         this.project = project;
         this.resolveTaskManager = resolveTaskManager;
 
+        final Function1<JetElement, BindingContext> countCachedTrace = new Function1<JetElement, BindingContext>() {
+            @Override
+            public BindingContext invoke(JetElement jetElement) {
+                if (jetElement instanceof JetNamedFunction) {
+                    DelegatingBindingTrace bodyResolveTrace =
+                            resolveTaskManager.resolveFunctionBody((JetNamedFunction) jetElement).getResultTrace();
+                    DelegatingBindingTrace trace = new DelegatingBindingTrace(
+                            bodyResolveTrace.getBindingContext(),
+                            "Body resolve trace with JetFlowInformationProvider results");
+
+                    new JetFlowInformationProvider(jetElement, trace).checkDeclaration();
+
+                    return trace.getBindingContext();
+                }
+
+                return performElementAdditionalResolve(jetElement, jetElement, BodyResolveMode.FULL);
+            }
+        };
+
         // Recreate internal cache after change of modification count
         this.additionalResolveCache =
                 CachedValuesManager.getManager(project).createCachedValue(new CachedValueProvider<MemoizedFunctionToNotNull<JetElement, BindingContext>>() {
@@ -61,17 +81,7 @@ public class ResolveElementCache extends ElementResolver {
                                 ResolveSession resolveSession = ResolveElementCache.this.getResolveSession();
                                 LazyResolveStorageManager manager = resolveSession.getStorageManager();
                                 MemoizedFunctionToNotNull<JetElement, BindingContext> elementsCacheFunction =
-                                        manager.createSoftlyRetainedMemoizedFunction(new Function1<JetElement, BindingContext>() {
-                                            @Override
-                                            public BindingContext invoke(JetElement jetElement) {
-                                                if (jetElement instanceof JetNamedFunction) {
-                                                    return resolveTaskManager.resolveFunctionBody((JetNamedFunction) jetElement)
-                                                            .getResultTrace().getBindingContext();
-                                                }
-
-                                                return performElementAdditionalResolve(jetElement, jetElement, BodyResolveMode.FULL);
-                                            }
-                                        });
+                                        manager.createSoftlyRetainedMemoizedFunction(countCachedTrace);
 
                                 return Result.create(elementsCacheFunction,
                                                      PsiModificationTracker.MODIFICATION_COUNT,
