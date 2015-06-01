@@ -397,7 +397,8 @@ public class ModifiersChecker {
             return Visibilities.PUBLIC;
         }
         if (isCompanionObject(descriptor)) {
-            return ((ClassDescriptor) descriptor.getContainingDeclaration()).getVisibility();
+            // companion object should be be accessible where containing class is accessible by default
+            return Visibilities.PUBLIC;
         }
         return Visibilities.INTERNAL;
     }
