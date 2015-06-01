@@ -66,21 +66,19 @@ object ReplaceWithAnnotationAnalyzer {
             annotation: ReplaceWith,
             symbolDescriptor: CallableDescriptor,
             resolutionFacade: ResolutionFacade,
-            file: JetFile/*TODO: drop it*/,
             project: Project
     ): ReplacementExpression {
         val originalDescriptor = (if (symbolDescriptor is CallableMemberDescriptor)
             DescriptorUtils.unwrapFakeOverride(symbolDescriptor)
         else
             symbolDescriptor).getOriginal()
-        return analyzeOriginal(annotation, originalDescriptor, resolutionFacade, file, project)
+        return analyzeOriginal(annotation, originalDescriptor, resolutionFacade, project)
     }
 
     private fun analyzeOriginal(
             annotation: ReplaceWith,
             symbolDescriptor: CallableDescriptor,
             resolutionFacade: ResolutionFacade,
-            file: JetFile/*TODO: drop it*/,
             project: Project
     ): ReplacementExpression {
         val psiFactory = JetPsiFactory(project)

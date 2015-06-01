@@ -93,7 +93,7 @@ public abstract class DeprecatedSymbolUsageFixBase(
         val resolvedCall = element.getResolvedCall(bindingContext)!!
         val descriptor = resolvedCall.getResultingDescriptor()
 
-        val replacement = ReplaceWithAnnotationAnalyzer.analyze(replaceWith, descriptor, element.getResolutionFacade(), file, project)
+        val replacement = ReplaceWithAnnotationAnalyzer.analyze(replaceWith, descriptor, element.getResolutionFacade(), project)
 
         invoke(resolvedCall, bindingContext, replacement, project, editor)
     }

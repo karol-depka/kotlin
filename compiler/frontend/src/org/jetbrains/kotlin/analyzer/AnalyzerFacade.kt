@@ -41,14 +41,12 @@ public trait ResolverForProject<M : ModuleInfo,out R : ResolverForModule> {
     public fun resolverForModuleDescriptor(descriptor: ModuleDescriptor): R
 
     val allModules: Collection<M>
-    val allDescriptors: Collection<ModuleDescriptor>
 }
 
 public class EmptyResolverForProject<M : ModuleInfo, R : ResolverForModule> : ResolverForProject<M, R> {
-    override fun resolverForModuleDescriptor(descriptor: ModuleDescriptor): R = throw IllegalStateException("Should not be called for $descriptor")
+    override fun resolverForModuleDescriptor(descriptor: ModuleDescriptor): R = throw IllegalStateException("$descriptor is not contained in this resolver")
     override fun descriptorForModule(moduleInfo: M) = throw IllegalStateException("Should not be called for $moduleInfo")
     override val allModules: Collection<M> = listOf()
-    override val allDescriptors: Collection<ModuleDescriptor> = listOf()
 }
 
 public class ResolverForProjectImpl<M : ModuleInfo, R : ResolverForModule>(
@@ -61,24 +59,13 @@ public class ResolverForProjectImpl<M : ModuleInfo, R : ResolverForModule>(
         (descriptorByModule.keySet() + delegateResolver.allModules).toSet()
     }
 
-    override val allDescriptors: Collection<ModuleDescriptor> by Delegates.lazy {
-        (descriptorByModule.values() + delegateResolver.allDescriptors).toSet()
-    }
-
     private fun assertCorrectModuleInfo(moduleInfo: M) {
         if (moduleInfo !in allModules) {
             throw AssertionError("Requested data for $moduleInfo not contained in this resolver.\nThis resolver was created for following infos:\n${allModules.joinToString("\n")}")
         }
     }
 
-    private fun assertCorrectDescriptor(descriptor: ModuleDescriptor) {
-        if (descriptor !in allDescriptors) {
-            throw AssertionError("Requested data for $descriptor not contained in this resolver.")
-        }
-    }
-
     override fun resolverForModuleDescriptor(descriptor: ModuleDescriptor): R {
-        assertCorrectDescriptor(descriptor)
         return resolverByModuleDescriptor[descriptor] ?: return delegateResolver.resolverForModuleDescriptor(descriptor)
     }
 
