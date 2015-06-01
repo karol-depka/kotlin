@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor
 import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyPackageDescriptor
 import org.jetbrains.kotlin.resolve.scopes.ChainedScope
 import org.jetbrains.kotlin.resolve.scopes.JetScope
+import org.jetbrains.kotlin.types.DynamicTypesSettings
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
@@ -403,7 +404,7 @@ public abstract class ElementResolver protected constructor(
         val globalContext = SimpleGlobalContext(resolveSession.getStorageManager(), resolveSession.getExceptionTracker())
         val bodyResolve = InjectorForBodyResolve(
                 globalContext.withProject(file.getProject()).withModule(resolveSession.getModuleDescriptor()),
-                trace, getAdditionalCheckerProvider(file), statementFilter
+                trace, getAdditionalCheckerProvider(file), statementFilter, getDynamicTypesSettings(file)
         )
         return bodyResolve.getBodyResolver()
     }
@@ -479,6 +480,7 @@ public abstract class ElementResolver protected constructor(
     }
 
     protected abstract fun getAdditionalCheckerProvider(jetFile: JetFile): AdditionalCheckerProvider
+    protected abstract fun getDynamicTypesSettings(jetFile: JetFile): DynamicTypesSettings
 
     private class BodyResolveContextForLazy(
             private val topDownAnalysisMode: TopDownAnalysisMode,
@@ -505,3 +507,4 @@ public abstract class ElementResolver protected constructor(
         override fun getTopDownAnalysisMode() = topDownAnalysisMode
     }
 }
+

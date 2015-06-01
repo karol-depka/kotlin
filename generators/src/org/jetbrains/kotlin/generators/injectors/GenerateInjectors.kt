@@ -34,9 +34,9 @@ import org.jetbrains.kotlin.load.java.sam.SamConversionResolverImpl
 import org.jetbrains.kotlin.load.java.structure.JavaPropertyInitializerEvaluator
 import org.jetbrains.kotlin.load.java.structure.impl.JavaPropertyInitializerEvaluatorImpl
 import org.jetbrains.kotlin.load.kotlin.DeserializationComponentsForJava
-import org.jetbrains.kotlin.load.kotlin.KotlinJvmCheckerProvider
 import org.jetbrains.kotlin.load.kotlin.JvmVirtualFileFinder
 import org.jetbrains.kotlin.load.kotlin.JvmVirtualFileFinderFactory
+import org.jetbrains.kotlin.load.kotlin.KotlinJvmCheckerProvider
 import org.jetbrains.kotlin.load.kotlin.reflect.ReflectKotlinClassFinder
 import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.calls.CallResolver
@@ -227,6 +227,7 @@ private fun generatorForBodyResolve() =
             parameter<BindingTrace>()
             parameter<AdditionalCheckerProvider>(useAsContext = true)
             parameter<StatementFilter>()
+            parameter<DynamicTypesSettings>()
 
             publicField<BodyResolver>()
 

@@ -36,10 +36,15 @@ public interface IDEResolveTaskManager: ResolveTaskManager {
     public fun hasElementAdditionalResolveCached(function: JetNamedFunction): Boolean = false
 }
 
-class IDEResolveTaskManagerImpl(val globalContext: GlobalContext, val project: Project, val resolveSession: ResolveSession): IDEResolveTaskManager {
+class IDEResolveTaskManagerImpl(val globalContext: GlobalContext,
+                                val project: Project,
+                                val platform: TargetPlatform,
+                                val resolveSession: ResolveSession): IDEResolveTaskManager {
+
     private val bodyResolve = InjectorForBodyResolve(
             globalContext.withProject(project).withModule(resolveSession.getModuleDescriptor()),
-            resolveSession.getTrace(), TargetPlatform.JVM.getAdditionalCheckerProvider(), StatementFilter.NONE
+            resolveSession.getTrace(), platform.getAdditionalCheckerProvider(), StatementFilter.NONE,
+            platform.getDynamicTypesSettings()
     ).getBodyResolver()
 
     val bodyResolveCache = CachedValuesManager.getManager(project).createCachedValue<MemoizedFunctionToNotNull<JetNamedFunction, BodyResolveResult>>(

@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.storage.ExceptionTracker
 import org.jetbrains.kotlin.utils.keysToMap
 
 fun createModuleResolverProvider(
+        platform: TargetPlatform,
         project: Project,
         globalContext: GlobalContextImpl,
         analyzerFacade: AnalyzerFacade<out ResolverForModule, JvmPlatformParameters>,

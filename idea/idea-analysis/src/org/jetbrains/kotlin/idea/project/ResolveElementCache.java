@@ -40,6 +40,7 @@ import org.jetbrains.kotlin.resolve.lazy.ProbablyNothingCallableNames;
 import org.jetbrains.kotlin.resolve.lazy.ResolveSession;
 import org.jetbrains.kotlin.storage.LazyResolveStorageManager;
 import org.jetbrains.kotlin.storage.MemoizedFunctionToNotNull;
+import org.jetbrains.kotlin.types.DynamicTypesSettings;
 
 import java.util.Collection;
 
@@ -111,6 +112,12 @@ public class ResolveElementCache extends ElementResolver {
     @Override
     public AdditionalCheckerProvider getAdditionalCheckerProvider(@NotNull JetFile jetFile) {
         return TargetPlatformDetector.getPlatform(jetFile).getAdditionalCheckerProvider();
+    }
+
+    @NotNull
+    @Override
+    public DynamicTypesSettings getDynamicTypesSettings(@NotNull JetFile jetFile) {
+        return TargetPlatformDetector.getPlatform(jetFile).getDynamicTypesSettings();
     }
 
     @NotNull
