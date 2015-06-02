@@ -99,9 +99,10 @@ public class KotlinCacheService(val project: Project) {
     private fun getGlobalCache(platform: TargetPlatform) = globalCachesPerPlatform[platform]!!.modulesCache
     private fun getGlobalLibrariesCache(platform: TargetPlatform) = globalCachesPerPlatform[platform]!!.librariesCache
 
-    private val syntheticFileCaches = object : SLRUCache<Set<JetFile>, KotlinResolveCache>(2, 3) {
-        override fun createValue(files: Set<JetFile>): KotlinResolveCache {
+    private val syntheticFileCaches = object : SLRUCache<Set<SyntheticFileInfo>, KotlinResolveCache>(2, 3) {
+        override fun createValue(fileInfos: Set<SyntheticFileInfo>): KotlinResolveCache {
             // we assume that all files come from the same module
+            val files = fileInfos.map { it.file }
             val targetPlatform = files.map { TargetPlatformDetector.getPlatform(it) }.toSet().single()
             val syntheticFileModule = files.map { it.getModuleInfo() }.toSet().single()
             return when {
@@ -153,7 +154,7 @@ public class KotlinCacheService(val project: Project) {
         }
     }
 
-    private fun getCacheForSyntheticFiles(files: Set<JetFile>): KotlinResolveCache {
+    private fun getCacheForSyntheticFiles(files: Set<SyntheticFileInfo>): KotlinResolveCache {
         return synchronized(syntheticFileCaches) {
             syntheticFileCaches[files]
         }
@@ -181,9 +182,7 @@ public class KotlinCacheService(val project: Project) {
 
     private fun findSyntheticFiles(files: Collection<JetFile>) = files.map {
         if (it is JetCodeFragment) it.getContextFile() else it
-    }.filter {
-        !ProjectRootsUtil.isInProjectSource(it)
-    }.toSet()
+    }.filter(JetFile::isSynthetic).toSet().map(::SyntheticFileInfo).toSet()
 
     private fun JetCodeFragment.getContextFile(): JetFile {
         val contextElement = getContext() ?: throw AssertionError("Analyzing code fragment of type $javaClass with no context")
@@ -194,6 +193,30 @@ public class KotlinCacheService(val project: Project) {
 
     public fun <T> get(extension: CacheExtension<T>): T {
         return getGlobalCache(extension.platform)[extension]
+    }
+}
+
+private fun JetFile.isSynthetic() = !ProjectRootsUtil.isInProjectSource(this)
+
+private class SyntheticFileInfo(val file: JetFile) {
+    val modificationStamp: Long = run {
+        val doesNotGenerateTreeEvents = !file.isPhysical()
+        val hasNonSyntheticOriginal = (file.getOriginalFile() as? JetFile)?.isSynthetic()?.not() ?: false
+        if (doesNotGenerateTreeEvents && !hasNonSyntheticOriginal) {
+            file.getModificationStamp()
+        }
+        else {
+            0
+        }
+    }
+
+    override fun hashCode(): Int {
+        return file.hashCode() + (13 * modificationStamp).toInt()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        val that = other as? SyntheticFileInfo ?: return false
+        return this.file == that.file && this.modificationStamp == that.modificationStamp
     }
 }
 
