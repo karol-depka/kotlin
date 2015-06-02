@@ -138,6 +138,11 @@ public open class KotlinCompile() : AbstractKotlinCompile<K2JVMCompilerArguments
             pluginOptions.add("plugin:$ANNOTATIONS_PLUGIN_NAME:output=" + kaptAnnotationsFile)
         }
 
+        val stubsDir = extraProperties.getOrNull<File>("stubsDir")
+        if (stubsDir != null) {
+            pluginOptions.add("plugin:$ANNOTATIONS_PLUGIN_NAME:stubs=" + stubsDir)
+        }
+
         args.pluginOptions = pluginOptions.toTypedArray()
         getLogger().kotlinDebug("args.pluginOptions = ${args.pluginOptions.joinToString(File.pathSeparator)}")
 
