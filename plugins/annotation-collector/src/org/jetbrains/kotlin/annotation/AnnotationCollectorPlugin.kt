@@ -64,7 +64,7 @@ public class AnnotationCollectorCommandLineProcessor : CommandLineProcessor {
                 CliOption("output", "<path>", "File in which annotated declarations will be placed", required = false)
 
         public val STUBS_PATH_OPTION: CliOption =
-                CliOption("stubs", "<path>", "Output path for stubs. Ignored if 'output' is set.", required = false)
+                CliOption("stubs", "<path>", "Output path for stubs.", required = false)
     }
 
     override val pluginId: String = ANNOTATION_COLLECTOR_COMPILER_PLUGIN_ID
@@ -88,13 +88,13 @@ public class AnnotationCollectorComponentRegistrar : ComponentRegistrar {
     public override fun registerProjectComponents(project: MockProject, configuration: CompilerConfiguration) {
         val annotationFilterList = configuration.get(AnnotationCollectorConfigurationKeys.ANNOTATION_FILTER_LIST)
         val outputFilename = configuration.get(AnnotationCollectorConfigurationKeys.OUTPUT_FILENAME)
-        val stubs = configuration.get(AnnotationCollectorConfigurationKeys.STUBS_PATH)
-
         if (outputFilename != null) {
             val collectorExtension = AnnotationCollectorExtension(annotationFilterList, outputFilename)
             ClassBuilderInterceptorExtension.registerExtension(project, collectorExtension)
         }
-        else if (stubs != null) {
+
+        val stubs = configuration.get(AnnotationCollectorConfigurationKeys.STUBS_PATH)
+        if (stubs != null) {
             AnalyzeCompleteHandlerExtension.registerExtension(project, StubProducerExtension(File(stubs)))
         }
     }

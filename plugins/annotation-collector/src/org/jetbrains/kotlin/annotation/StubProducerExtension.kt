@@ -17,6 +17,8 @@
 package org.jetbrains.kotlin.annotation
 
 import com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.cli.common.CLICompiler
+import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.output.outputUtils.writeAllTo
 import org.jetbrains.kotlin.codegen.*
 import org.jetbrains.kotlin.codegen.state.GenerationState
@@ -76,7 +78,7 @@ public class StubProducerExtension(val stubsOutputDir: File) : AnalyzeCompleteHa
         generationState.getFactory().writeAllTo(stubsOutputDir)
 
         generationState.destroy()
-        System.exit(0)
+        throw CLICompiler.CompilationInterruptedException(ExitCode.OK)
     }
 }
 
