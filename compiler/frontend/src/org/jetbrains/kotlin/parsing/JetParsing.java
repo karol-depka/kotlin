@@ -351,13 +351,11 @@ public class JetParsing extends AbstractJetParsing {
     }
 
     private void parseImportDirectives() {
-        if (at(IMPORT_KEYWORD)) {
-            PsiBuilder.Marker importList = mark();
-            while (at(IMPORT_KEYWORD)) {
-                parseImportDirective();
-            }
-            importList.done(IMPORT_LIST);
+        PsiBuilder.Marker importList = mark();
+        while (at(IMPORT_KEYWORD)) {
+            parseImportDirective();
         }
+        importList.done(IMPORT_LIST);
     }
 
     /*
