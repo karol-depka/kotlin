@@ -19,6 +19,8 @@ package org.jetbrains.kotlin.psi;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.IncorrectOperationException;
+import kotlin.KotlinPackage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.lexer.JetTokens;
@@ -157,6 +159,17 @@ public class JetImportDirective extends JetElementImplStub<KotlinImportDirective
         }
         else {
             throw new IllegalArgumentException("Can't construct name for: " + expression.getClass().toString());
+        }
+    }
+
+    @Override
+    public void delete() throws IncorrectOperationException {
+        JetImportList importList = (JetImportList) getParent();
+        if (KotlinPackage.singleOrNull(importList.getImports()) == this) {
+            importList.delete();
+        }
+        else {
+            super.delete();
         }
     }
 }
