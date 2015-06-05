@@ -332,6 +332,9 @@ public class AsmUtil {
                 return ACC_PROTECTED;
             }
         }
+        if (containingDeclaration instanceof PackageFragmentDescriptor) {
+            return NO_FLAG_PACKAGE_PRIVATE;
+        }
         return null;
     }
 
