@@ -5,6 +5,8 @@ JetFile: PackageBlockFirst.kt
     REFERENCE_EXPRESSION
       PsiElement(IDENTIFIER)('foobar')
   PsiWhiteSpace(' ')
+  IMPORT_LIST
+    <empty list>
   FUN
     PsiErrorElement:Expecting a top level declaration
       <empty list>

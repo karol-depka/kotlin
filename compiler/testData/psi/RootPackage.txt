@@ -10,6 +10,8 @@ JetFile: RootPackage.kt
         PsiElement(IDENTIFIER)('bar')
     PsiElement(SEMICOLON)(';')
   PsiWhiteSpace('\n\n')
+  IMPORT_LIST
+    <empty list>
   CLASS
     PsiElement(class)('class')
     PsiWhiteSpace(' ')

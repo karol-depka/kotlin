@@ -52,3 +52,5 @@ JetFile: MarkdownLinkWithError.kt
         PsiElement(RBRACKET)(']')
     PsiWhiteSpace('\n ')
     PsiElement(KDOC_END)('*/')
+  IMPORT_LIST
+    <empty list>

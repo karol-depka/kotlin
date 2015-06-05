@@ -5,6 +5,8 @@ JetFile: fileAnnotationInWrongPlace.kt
     REFERENCE_EXPRESSION
       PsiElement(IDENTIFIER)('bar')
   PsiWhiteSpace('\n\n')
+  IMPORT_LIST
+    <empty list>
   PROPERTY
     MODIFIER_LIST
       ANNOTATION_ENTRY

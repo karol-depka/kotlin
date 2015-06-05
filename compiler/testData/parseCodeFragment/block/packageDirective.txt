@@ -6,7 +6,9 @@ JetFile: fragment.kt
         PsiWhiteSpace(' ')
         REFERENCE_EXPRESSION
           PsiElement(IDENTIFIER)('a')
-    PsiWhiteSpace('\n')
+      PsiWhiteSpace('\n')
+      IMPORT_LIST
+        <empty list>
     PROPERTY
       PsiElement(val)('val')
       PsiWhiteSpace(' ')

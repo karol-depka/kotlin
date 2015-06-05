@@ -1,18 +1,20 @@
 JetFile: DocCommentsBinding.kt
   PACKAGE_DIRECTIVE
     <empty list>
+  KDoc
+    PsiElement(KDOC_START)('/**')
+    PsiWhiteSpace('\n ')
+    KDOC_SECTION
+      PsiElement(KDOC_LEADING_ASTERISK)('*')
+      PsiElement(KDOC_TEXT)(' Doc comment for A')
+    PsiWhiteSpace('\n ')
+    PsiElement(KDOC_END)('*/')
+  PsiWhiteSpace('\n')
+  PsiComment(EOL_COMMENT)('// some comment')
+  PsiWhiteSpace('\n')
+  IMPORT_LIST
+    <empty list>
   CLASS
-    KDoc
-      PsiElement(KDOC_START)('/**')
-      PsiWhiteSpace('\n ')
-      KDOC_SECTION
-        PsiElement(KDOC_LEADING_ASTERISK)('*')
-        PsiElement(KDOC_TEXT)(' Doc comment for A')
-      PsiWhiteSpace('\n ')
-      PsiElement(KDOC_END)('*/')
-    PsiWhiteSpace('\n')
-    PsiComment(EOL_COMMENT)('// some comment')
-    PsiWhiteSpace('\n')
     PsiElement(class)('class')
     PsiWhiteSpace(' ')
     PsiElement(IDENTIFIER)('A')

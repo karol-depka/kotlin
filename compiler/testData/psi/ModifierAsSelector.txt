@@ -3,6 +3,8 @@ JetFile: ModifierAsSelector.kt
   PsiWhiteSpace('\n\n')
   PACKAGE_DIRECTIVE
     <empty list>
+  IMPORT_LIST
+    <empty list>
   PROPERTY
     PsiElement(val)('val')
     PsiWhiteSpace(' ')

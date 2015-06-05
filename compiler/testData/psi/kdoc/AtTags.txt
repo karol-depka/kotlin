@@ -17,3 +17,5 @@ JetFile: AtTags.kt
         PsiElement(KDOC_TEXT)(' @')
     PsiWhiteSpace('\n ')
     PsiElement(KDOC_END)('*/')
+  IMPORT_LIST
+    <empty list>

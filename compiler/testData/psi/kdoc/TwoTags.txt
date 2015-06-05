@@ -20,3 +20,5 @@ JetFile: TwoTags.kt
         PsiElement(KDOC_TEXT)('M12')
     PsiWhiteSpace('\n ')
     PsiElement(KDOC_END)('*/')
+  IMPORT_LIST
+    <empty list>

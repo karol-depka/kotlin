@@ -5,6 +5,8 @@ JetFile: PackageLongNameDoubleID.kt
     REFERENCE_EXPRESSION
       PsiElement(IDENTIFIER)('a')
   PsiWhiteSpace(' ')
+  IMPORT_LIST
+    <empty list>
   MODIFIER_LIST
     ANNOTATION_ENTRY
       CONSTRUCTOR_CALLEE

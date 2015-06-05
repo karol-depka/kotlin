@@ -7,3 +7,5 @@ JetFile: EndOnLeadingAsterisks.kt
     KDOC_SECTION
       <empty list>
     PsiElement(KDOC_END)('*/')
+  IMPORT_LIST
+    <empty list>

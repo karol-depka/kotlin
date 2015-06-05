@@ -22,3 +22,5 @@ JetFile: Simple.kt
       PsiElement(KDOC_LEADING_ASTERISK)('**')
       PsiElement(KDOC_TEXT)(' line 6 ')
     PsiElement(KDOC_END)('*/')
+  IMPORT_LIST
+    <empty list>

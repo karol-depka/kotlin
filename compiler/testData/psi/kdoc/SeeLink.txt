@@ -18,3 +18,5 @@ JetFile: SeeLink.kt
             PsiElement(IDENTIFIER)('bar')
     PsiWhiteSpace('\n ')
     PsiElement(KDOC_END)('*/')
+  IMPORT_LIST
+    <empty list>

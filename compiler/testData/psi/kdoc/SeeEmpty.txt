@@ -23,3 +23,5 @@ JetFile: SeeEmpty.kt
             <empty list>
     PsiWhiteSpace('\n ')
     PsiElement(KDOC_END)('*/')
+  IMPORT_LIST
+    <empty list>

@@ -1,9 +1,11 @@
 JetFile: namelessObjectAsEnumMember.kt
   PACKAGE_DIRECTIVE
     <empty list>
+  PsiComment(EOL_COMMENT)('// test that inner keyword is not parsed as enum entry')
+  PsiWhiteSpace('\n')
+  IMPORT_LIST
+    <empty list>
   CLASS
-    PsiComment(EOL_COMMENT)('// test that inner keyword is not parsed as enum entry')
-    PsiWhiteSpace('\n')
     MODIFIER_LIST
       PsiElement(public)('public')
       PsiWhiteSpace(' ')

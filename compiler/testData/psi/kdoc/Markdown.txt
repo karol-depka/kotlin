@@ -34,3 +34,5 @@ JetFile: Markdown.kt
       PsiElement(KDOC_MARKDOWN_ESCAPED_CHAR)('\]')
     PsiWhiteSpace('\n ')
     PsiElement(KDOC_END)('*/')
+  IMPORT_LIST
+    <empty list>

@@ -15,6 +15,8 @@ JetFile: withoutPackageWithSimpleAnnotation.kt
   PsiWhiteSpace('\n')
   PACKAGE_DIRECTIVE
     <empty list>
+  IMPORT_LIST
+    <empty list>
   FUN
     MODIFIER_LIST
       ANNOTATION_ENTRY

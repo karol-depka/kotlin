@@ -39,3 +39,5 @@ JetFile: Sections.kt
         PsiElement(KDOC_TEXT)('a constructor parameter.')
     PsiWhiteSpace('\n ')
     PsiElement(KDOC_END)('*/')
+  IMPORT_LIST
+    <empty list>

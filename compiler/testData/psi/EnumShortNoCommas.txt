@@ -1,11 +1,13 @@
 JetFile: EnumShortNoCommas.kt
   PACKAGE_DIRECTIVE
     <empty list>
+  PsiComment(EOL_COMMENT)('// NB: this test uses deprecated syntax')
+  PsiWhiteSpace('\n')
+  PsiComment(EOL_COMMENT)('// Delete it when this syntax is no longer supported')
+  PsiWhiteSpace('\n')
+  IMPORT_LIST
+    <empty list>
   CLASS
-    PsiComment(EOL_COMMENT)('// NB: this test uses deprecated syntax')
-    PsiWhiteSpace('\n')
-    PsiComment(EOL_COMMENT)('// Delete it when this syntax is no longer supported')
-    PsiWhiteSpace('\n')
     MODIFIER_LIST
       PsiElement(enum)('enum')
     PsiWhiteSpace(' ')

@@ -1,9 +1,11 @@
 JetFile: EnumMissingName.kt
   PACKAGE_DIRECTIVE
     <empty list>
+  PsiComment(EOL_COMMENT)('// Error: name should present')
+  PsiWhiteSpace('\n')
+  IMPORT_LIST
+    <empty list>
   CLASS
-    PsiComment(EOL_COMMENT)('// Error: name should present')
-    PsiWhiteSpace('\n')
     MODIFIER_LIST
       PsiElement(enum)('enum')
     PsiWhiteSpace(' ')

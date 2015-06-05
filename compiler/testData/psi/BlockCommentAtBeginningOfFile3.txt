@@ -2,3 +2,5 @@ JetFile: BlockCommentAtBeginningOfFile3.kt
   PACKAGE_DIRECTIVE
     <empty list>
   PsiComment(BLOCK_COMMENT)('/*\n\nfooo')
+  IMPORT_LIST
+    <empty list>

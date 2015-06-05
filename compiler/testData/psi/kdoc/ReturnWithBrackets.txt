@@ -24,3 +24,5 @@ JetFile: ReturnWithBrackets.kt
         PsiElement(KDOC_TEXT)(' This is a reference')
     PsiWhiteSpace('\n ')
     PsiElement(KDOC_END)('*/')
+  IMPORT_LIST
+    <empty list>

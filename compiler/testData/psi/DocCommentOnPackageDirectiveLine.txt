@@ -9,13 +9,15 @@ JetFile: DocCommentOnPackageDirectiveLine.kt
       REFERENCE_EXPRESSION
         PsiElement(IDENTIFIER)('p2')
     PsiElement(SEMICOLON)(';')
+  KDoc
+    PsiElement(KDOC_START)('/**')
+    KDOC_SECTION
+      PsiElement(KDOC_TEXT)(' some ')
+    PsiElement(KDOC_END)('*/')
+  PsiWhiteSpace('\n')
+  IMPORT_LIST
+    <empty list>
   FUN
-    KDoc
-      PsiElement(KDOC_START)('/**')
-      KDOC_SECTION
-        PsiElement(KDOC_TEXT)(' some ')
-      PsiElement(KDOC_END)('*/')
-    PsiWhiteSpace('\n')
     PsiElement(fun)('fun')
     PsiWhiteSpace(' ')
     PsiElement(IDENTIFIER)('foo')

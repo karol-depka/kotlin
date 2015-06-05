@@ -1,9 +1,11 @@
 JetFile: Super.kt
   PACKAGE_DIRECTIVE
     <empty list>
+  PsiComment(EOL_COMMENT)('// KT-156 Fix the this<Super> syntax')
+  PsiWhiteSpace('\n')
+  IMPORT_LIST
+    <empty list>
   FUN
-    PsiComment(EOL_COMMENT)('// KT-156 Fix the this<Super> syntax')
-    PsiWhiteSpace('\n')
     PsiElement(fun)('fun')
     PsiWhiteSpace(' ')
     PsiElement(IDENTIFIER)('foo')

@@ -17,3 +17,5 @@ JetFile: ParamTag.kt
         PsiElement(KDOC_TEXT)('The description of a.')
     PsiWhiteSpace('\n ')
     PsiElement(KDOC_END)('*/')
+  IMPORT_LIST
+    <empty list>

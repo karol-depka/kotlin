@@ -6,3 +6,5 @@ JetFile: Incomplete.kt
     PsiWhiteSpace('\n      ')
     KDOC_SECTION
       PsiElement(KDOC_TEXT)('contents')
+  IMPORT_LIST
+    <empty list>

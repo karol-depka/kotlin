@@ -21,6 +21,8 @@ JetFile: EnumNoAnnotations.kt
       REFERENCE_EXPRESSION
         PsiElement(IDENTIFIER)('enum')
   PsiWhiteSpace('\n\n')
+  IMPORT_LIST
+    <empty list>
   CLASS
     MODIFIER_LIST
       PsiElement(enum)('enum')

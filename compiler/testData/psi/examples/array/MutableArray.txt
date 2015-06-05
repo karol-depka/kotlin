@@ -1,15 +1,17 @@
 JetFile: MutableArray.kt
   PACKAGE_DIRECTIVE
     <empty list>
+  KDoc
+    PsiElement(KDOC_START)('/**')
+    PsiWhiteSpace('\n  ')
+    KDOC_SECTION
+      PsiElement(KDOC_TEXT)('These declarations are "shallow" in the sense that they are not really compiled, only the type-checker uses them')
+    PsiWhiteSpace('\n')
+    PsiElement(KDOC_END)('*/')
+  PsiWhiteSpace('\n\n')
+  IMPORT_LIST
+    <empty list>
   CLASS
-    KDoc
-      PsiElement(KDOC_START)('/**')
-      PsiWhiteSpace('\n  ')
-      KDOC_SECTION
-        PsiElement(KDOC_TEXT)('These declarations are "shallow" in the sense that they are not really compiled, only the type-checker uses them')
-      PsiWhiteSpace('\n')
-      PsiElement(KDOC_END)('*/')
-    PsiWhiteSpace('\n\n')
     MODIFIER_LIST
       PsiElement(open)('open')
     PsiWhiteSpace(' ')
