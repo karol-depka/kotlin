@@ -33,7 +33,7 @@ import org.jetbrains.kotlin.js.translate.context.Namer
 import org.jetbrains.kotlin.js.translate.context.TranslationContext
 import org.jetbrains.kotlin.js.translate.reference.CallExpressionTranslator
 import org.jetbrains.kotlin.js.translate.utils.JsDescriptorUtils.getExternalModuleName
-import org.jetbrains.kotlin.psi.JetCallExpression
+import org.jetbrains.kotlin.psi.JetExpression
 import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.resolve.inline.InlineStrategy
 import org.jetbrains.kotlin.utils.LibraryUtils
@@ -106,7 +106,12 @@ public class FunctionReader(private val context: TranslationContext) {
 
         if (function == null) {
             val psiElement = call.psiElement
-            if (psiElement !is JetCallExpression) throw AssertionError("Expected JetCallExpression, got $psiElement")
+
+            if (psiElement !is JetExpression) {
+                val className = psiElement?.javaClass?.getName()
+                throw AssertionError("Expected JetExpression, got $className")
+            }
+
             val diagnostic = ErrorsJs.COULD_NOT_INLINE_FROM_LIBRARY.on(psiElement)
             context.bindingTrace().report(diagnostic)
             failedToLoad.add(call)

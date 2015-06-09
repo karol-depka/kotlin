@@ -20,7 +20,10 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticFactory0;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory2;
 import org.jetbrains.kotlin.diagnostics.Errors;
-import org.jetbrains.kotlin.psi.*;
+import org.jetbrains.kotlin.psi.JetDeclaration;
+import org.jetbrains.kotlin.psi.JetElement;
+import org.jetbrains.kotlin.psi.JetExpression;
+import org.jetbrains.kotlin.psi.JetNamedDeclaration;
 import org.jetbrains.kotlin.types.JetType;
 
 import static org.jetbrains.kotlin.diagnostics.PositioningStrategies.*;
@@ -41,7 +44,7 @@ public interface ErrorsJs {
     DiagnosticFactory1<JetElement, JetElement> REFERENCE_TO_BUILTIN_MEMBERS_NOT_SUPPORTED = DiagnosticFactory1.create(ERROR, DEFAULT);
     DiagnosticFactory1<JetNamedDeclaration, String> NON_TOPLEVEL_CLASS_DECLARATION = DiagnosticFactory1.create(ERROR, DECLARATION_NAME);
     DiagnosticFactory0<JetExpression> JSCODE_NO_JAVASCRIPT_PRODUCED = DiagnosticFactory0.create(ERROR, DEFAULT);
-    DiagnosticFactory0<JetCallExpression> COULD_NOT_INLINE_FROM_LIBRARY = DiagnosticFactory0.create(WARNING, DEFAULT);
+    DiagnosticFactory0<JetExpression> COULD_NOT_INLINE_FROM_LIBRARY = DiagnosticFactory0.create(WARNING, DEFAULT);
 
     @SuppressWarnings("UnusedDeclaration")
     Object _initializer = new Object() {
