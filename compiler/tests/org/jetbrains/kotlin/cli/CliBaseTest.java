@@ -132,4 +132,9 @@ public class CliBaseTest {
     protected void executeCompilerCompareOutputJS() throws Exception {
         executeCompilerCompareOutput(new K2JSCompiler(), JS_TEST_DATA);
     }
+
+    @NotNull
+    protected File getJsTestDataDir() {
+        return new File(JS_TEST_DATA);
+    }
 }
