@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.types.TypeProjection
 
 public interface DescriptorRenderer : Renderer<DeclarationDescriptor> {
     public fun withOptions(changeOptions: DescriptorRendererOptions.() -> Unit): DescriptorRenderer {
-        val options = (this as DescriptorRendererImpl).options.copy()
+        val options = (this as DescriptorRendererImpl).options.copyAndUnlock()
         options.changeOptions()
         options.lock()
         return DescriptorRendererImpl(options)

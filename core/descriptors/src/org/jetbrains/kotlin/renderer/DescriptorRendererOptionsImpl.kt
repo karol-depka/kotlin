@@ -24,7 +24,7 @@ import kotlin.properties.Delegates
 import kotlin.properties.ObservableProperty
 import kotlin.properties.ReadWriteProperty
 
-internal class DescriptorRendererOptionsImpl : DescriptorRendererOptions {
+internal data class DescriptorRendererOptionsImpl : DescriptorRendererOptions {
     public var isLocked: Boolean = false
         private set
 
@@ -33,18 +33,9 @@ internal class DescriptorRendererOptionsImpl : DescriptorRendererOptions {
         isLocked = true
     }
 
-    public fun copy(): DescriptorRendererOptionsImpl {
-        val copy = DescriptorRendererOptionsImpl()
-
-        //TODO: use Kotlin reflection when it's ready
-        for (field in this.javaClass.getDeclaredFields()) {
-            if (field.getModifiers().and(Modifier.STATIC) != 0) continue
-            field.setAccessible(true)
-            val property = field.get(this) as? ObservableProperty<*> ?: continue
-            val value = property.get(this, PropertyMetadataImpl("")/* not used*/)
-            field.set(copy, copy.property(value as Any))
-        }
-
+    public fun copyAndUnlock(): DescriptorRendererOptionsImpl {
+        val copy = copy()
+        copy.isLocked = false
         return copy
     }
 
