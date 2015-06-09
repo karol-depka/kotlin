@@ -101,7 +101,7 @@ abstract class FunctionContext(
      *    in case of local function with closure.
      */
     private fun getFunctionDefinitionImpl(call: JsInvocation): JsFunction? {
-        if (call in functionReader) return functionReader[call]
+        if (functionReader.isCallToFunctionFromLibrary(call)) return functionReader.getLibraryFunctionDefinition(call)
 
         /** remove ending `()` */
         var callQualifier = call.getQualifier()

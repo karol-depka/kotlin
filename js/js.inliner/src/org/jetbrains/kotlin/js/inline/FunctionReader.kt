@@ -91,14 +91,14 @@ public class FunctionReader(private val context: TranslationContext) {
                 readFunction(key)
     }
 
-    public fun contains(call: JsInvocation): Boolean {
+    public fun isCallToFunctionFromLibrary(call: JsInvocation): Boolean {
         val descriptor = call.descriptor ?: return false
         val moduleName = getExternalModuleName(descriptor)
         val currentModuleName = context.getConfig().getModuleId()
         return moduleName != null && currentModuleName != moduleName
     }
 
-    public fun get(call: JsInvocation): JsFunction? {
+    public fun getLibraryFunctionDefinition(call: JsInvocation): JsFunction? {
         if (call in failedToLoad) return null
 
         val descriptor = call.descriptor!!
