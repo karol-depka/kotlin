@@ -37,8 +37,8 @@ abstract class FunctionContext(
 
     protected abstract fun lookUpStaticFunction(functionName: JsName?): JsFunction?
 
-    public fun getFunctionDefinition(call: JsInvocation): JsFunction? {
-        return getFunctionDefinitionImpl(call)
+    public fun getFunctionDefinition(call: JsInvocation): JsFunction {
+        return getFunctionDefinitionImpl(call)!!
     }
 
     public fun hasFunctionDefinition(call: JsInvocation): Boolean {
