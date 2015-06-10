@@ -16,24 +16,20 @@
 
 package org.jetbrains.kotlin.idea.caches.resolve
 
-import org.jetbrains.kotlin.analyzer.ModuleInfo
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.OrderEntry
-import com.intellij.openapi.roots.ModuleSourceOrderEntry
-import com.intellij.openapi.roots.ModuleOrderEntry
-import com.intellij.openapi.roots.LibraryOrderEntry
-import com.intellij.openapi.roots.JdkOrderEntry
 import com.intellij.openapi.module.Module
-import org.jetbrains.kotlin.name.Name
-import java.util.LinkedHashSet
-import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.roots.libraries.Library
-import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.module.impl.scopes.LibraryScopeBase
-import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.roots.*
+import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import org.jetbrains.kotlin.analyzer.ModuleInfo
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.emptyOrSingletonList
+import java.util.LinkedHashSet
 
 public val LIBRARY_NAME_PREFIX: String = "library "
 
@@ -65,6 +61,12 @@ private fun orderEntryToModuleInfo(project: Project, orderEntry: OrderEntry, pro
     }
 }
 
+private fun <T> Module.cachedByRootModification(compute: () -> T): T {
+    return CachedValuesManager.getManager(getProject()).getCachedValue(this) {
+        CachedValueProvider.Result(compute(), ProjectRootModificationTracker.getInstance(getProject()))
+    }
+}
+
 fun ideaModelDependencies(module: Module, productionOnly: Boolean): List<IdeaModuleInfo> {
     //NOTE: lib dependencies can be processed several times during recursive traversal
     val result = LinkedHashSet<IdeaModuleInfo>()
@@ -89,7 +91,7 @@ public data class ModuleProductionSourceInfo(override val module: Module) : Modu
 
     override fun contentScope() = ModuleProductionSourceScope(module)
 
-    override fun dependencies() = ideaModelDependencies(module, productionOnly = true)
+    override fun dependencies() = module.cachedByRootModification { ideaModelDependencies(module, productionOnly = true) }
 
     override fun friends() = listOf(module.testSourceInfo())
 }
@@ -100,7 +102,7 @@ public data class ModuleTestSourceInfo(override val module: Module) : ModuleSour
 
     override fun contentScope() = ModuleTestSourceScope(module)
 
-    override fun dependencies() = ideaModelDependencies(module, productionOnly = false)
+    override fun dependencies() = module.cachedByRootModification { ideaModelDependencies(module, productionOnly = false) }
 }
 
 private fun ModuleSourceInfo.isTests() = this is ModuleTestSourceInfo
