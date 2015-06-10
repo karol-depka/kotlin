@@ -78,6 +78,7 @@ public class InlineCodegenUtil {
     public static final String INLINE_MARKER_BEFORE_METHOD_NAME = "beforeInlineCall";
     public static final String INLINE_MARKER_AFTER_METHOD_NAME = "afterInlineCall";
     public static final String INLINE_MARKER_GOTO_TRY_CATCH_BLOCK_END = "goToTryCatchBlockEnd";
+    public static final String INLINE_MARKER_TRY_BLOCK_RETURN_OR_JUMP = "tryBlockReturnOrJump";
 
     @Nullable
     public static SMAPAndMethodNode getMethodNode(
@@ -409,12 +410,24 @@ public class InlineCodegenUtil {
         v.invokestatic(INLINE_MARKER_CLASS_NAME, INLINE_MARKER_GOTO_TRY_CATCH_BLOCK_END, "()V", false);
     }
 
+    public static void generateTryBlockReturnOrJumpMarker(@NotNull InstructionAdapter v) {
+        v.invokestatic(INLINE_MARKER_CLASS_NAME, INLINE_MARKER_TRY_BLOCK_RETURN_OR_JUMP, "()V", false);
+    }
+
     public static boolean isGoToTryCatchBlockEnd(@NotNull AbstractInsnNode node) {
         if (!(node.getPrevious() instanceof MethodInsnNode)) return false;
         MethodInsnNode previous = (MethodInsnNode) node.getPrevious();
         return node.getOpcode() == Opcodes.GOTO &&
                INLINE_MARKER_CLASS_NAME.equals(previous.owner) &&
                INLINE_MARKER_GOTO_TRY_CATCH_BLOCK_END.equals(previous.name);
+    }
+
+    public static boolean isTryBlockReturnOrJump(@NotNull AbstractInsnNode node) {
+        if (!(node.getPrevious() instanceof MethodInsnNode)) return false;
+        MethodInsnNode previous = (MethodInsnNode) node.getPrevious();
+        return (node.getOpcode() == Opcodes.GOTO || isReturnOpcode(node.getOpcode())) &&
+               INLINE_MARKER_CLASS_NAME.equals(previous.owner) &&
+               INLINE_MARKER_TRY_BLOCK_RETURN_OR_JUMP.equals(previous.name);
     }
 
     public static class LabelTextifier extends Textifier {

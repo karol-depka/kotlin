@@ -29,4 +29,8 @@ public class InlineMarker {
     public static void goToTryCatchBlockEnd() {
 
     }
+
+    public static void tryBlockReturnOrJump() {
+
+    }
 }

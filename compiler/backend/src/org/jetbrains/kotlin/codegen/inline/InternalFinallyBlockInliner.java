@@ -152,6 +152,8 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
             Iterator<TryBlockCluster<TryCatchBlockNodeInfo>> tryCatchBlockIterator = clustersFromInnermost.iterator();
 
             checkClusterInvariant(clustersFromInnermost);
+            LabelNode newFinallyEnd = new LabelNode();
+            instructions.insert(markedReturn, newFinallyEnd);
 
             List<TryCatchBlockNodeInfo> additionalNodesToSplit = new ArrayList<TryCatchBlockNodeInfo>();
             while (tryCatchBlockIterator.hasNext()) {
@@ -174,7 +176,7 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
                 //Creating temp node for finally block copy with some additional instruction
                 MethodNode finallyBlockCopy = createEmptyMethodNode();
                 Label newFinallyStart = new Label();
-                Label newFinallyEnd = new Label();
+
                 Label insertedBlockEnd = new Label();
 
                 boolean generateAloadAstore = nonLocalReturnType != Type.VOID_TYPE && !finallyInfo.isEmpty();
@@ -199,7 +201,6 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
                     currentIns = currentIns.getNext();
                 }
 
-                finallyBlockCopy.visitLabel(newFinallyEnd);
                 if (generateAloadAstore) {
                     finallyBlockCopy.visitVarInsn(nonLocalReturnType.getOpcode(Opcodes.ILOAD), nextTempNonLocalVarIndex);
                     nextTempNonLocalVarIndex += nonLocalReturnType.getSize(); //TODO: do more wise indexing
@@ -306,7 +307,7 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
     private void updateExceptionTable(
             @NotNull List<TryCatchBlockNodeInfo> updatingClusterBlocks,
             @NotNull Label newFinallyStart,
-            @NotNull Label newFinallyEnd,
+            @NotNull LabelNode newFinallyEnd,
             @NotNull List<TryCatchBlockNodePosition> tryCatchBlockPresentInFinally,
             @NotNull Set<LabelNode> labelsInsideFinally,
             @NotNull LabelNode insertedBlockEnd,
@@ -391,7 +392,7 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
         toProcess.addAll(patched);
         toProcess.addAll(updatingClusterBlocks);
         patched.clear();
-        SimpleInterval splitBy = new SimpleInterval((LabelNode) newFinallyStart.info, (LabelNode) newFinallyEnd.info);
+        SimpleInterval splitBy = new SimpleInterval((LabelNode) newFinallyStart.info, newFinallyEnd);
         // Inserted finally shouldn't be handled by corresponding catches,
         // so we should split original interval by inserted finally one
         for (TryCatchBlockNodeInfo block : toProcess) {
@@ -470,6 +471,7 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
         TryCatchBlockNodeInfo nextIntervalWithSameDefaultHandler = sameDefaultHandler.get(1);
         AbstractInsnNode startFinallyChain = tryCatchBlock.getNode().end;
         AbstractInsnNode endFinallyChainExclusive = skipLastGotoIfNeeded(nextIntervalWithSameDefaultHandler.getNode().start);
+        endFinallyChainExclusive = skipTryBlockReturnOrJump(endFinallyChainExclusive);
 
         FinallyBlockInfo finallyInfo = new FinallyBlockInfo(startFinallyChain.getNext(), endFinallyChainExclusive);
 
@@ -490,6 +492,26 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
 
         if (InlineCodegenUtil.isGoToTryCatchBlockEnd(prevLast)) {
             return prevLast.getPrevious();
+        }
+        return lastFinallyInsExclusive;
+    }
+
+    @NotNull
+    private static AbstractInsnNode skipTryBlockReturnOrJump(
+            @NotNull AbstractInsnNode lastFinallyInsExclusive
+    ) {
+
+        AbstractInsnNode prevLast = getPrevNoLineNumberOrLabel(lastFinallyInsExclusive, true);
+        assert prevLast != null : "Empty finally block: " + lastFinallyInsExclusive;
+
+        if (InlineCodegenUtil.isTryBlockReturnOrJump(prevLast)) {
+            if (prevLast.getOpcode() == Opcodes.RETURN) {
+                return prevLast.getPrevious();
+            } else {
+                //skip aload
+                return prevLast.getPrevious().getPrevious();
+            }
+
         }
         return lastFinallyInsExclusive;
     }

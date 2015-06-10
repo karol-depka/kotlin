@@ -1848,6 +1848,10 @@ public class ExpressionCodegen extends JetVisitor<StackValue, StackValue> implem
         Label afterReturnLabel = new Label();
         generateFinallyBlocksIfNeeded(returnType, afterReturnLabel);
 
+        if (context.isInlineFunction() && hasFinallyBlocks()) {
+            InlineCodegenUtil.generateTryBlockReturnOrJumpMarker(v);
+        }
+
         if (isNonLocalReturn) {
             InlineCodegenUtil.generateGlobalReturnFlag(v, nonLocalReturn.labelName);
         }
