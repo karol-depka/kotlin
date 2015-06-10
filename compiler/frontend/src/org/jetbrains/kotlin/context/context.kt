@@ -51,7 +51,7 @@ public trait MutableModuleContext: ModuleContext {
     override val module: ModuleDescriptorImpl
 
     public fun setDependencies(vararg dependencies: ModuleDescriptorImpl) {
-        setDependencies(*dependencies)
+        module.setDependencies(*dependencies)
     }
 
     public fun setDependencies(dependencies: List<ModuleDescriptorImpl>) {
