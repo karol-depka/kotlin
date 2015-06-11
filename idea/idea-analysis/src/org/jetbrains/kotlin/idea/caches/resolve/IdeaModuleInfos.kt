@@ -61,10 +61,8 @@ private fun orderEntryToModuleInfo(project: Project, orderEntry: OrderEntry, pro
     }
 }
 
-private fun <T> Module.cachedByRootModification(compute: () -> T): T {
-    return CachedValuesManager.getManager(getProject()).getCachedValue(this) {
-        CachedValueProvider.Result(compute(), ProjectRootModificationTracker.getInstance(getProject()))
-    }
+private fun <T> Module.cached(provider: CachedValueProvider<T>): T {
+    return CachedValuesManager.getManager(getProject()).getCachedValue(this, provider)
 }
 
 fun ideaModelDependencies(module: Module, productionOnly: Boolean): List<IdeaModuleInfo> {
@@ -91,7 +89,11 @@ public data class ModuleProductionSourceInfo(override val module: Module) : Modu
 
     override fun contentScope() = ModuleProductionSourceScope(module)
 
-    override fun dependencies() = module.cachedByRootModification { ideaModelDependencies(module, productionOnly = true) }
+    override fun dependencies() = module.cached(CachedValueProvider {
+        CachedValueProvider.Result(
+                ideaModelDependencies(module, productionOnly = true),
+                ProjectRootModificationTracker.getInstance(module.getProject()))
+    })
 
     override fun friends() = listOf(module.testSourceInfo())
 }
@@ -102,7 +104,11 @@ public data class ModuleTestSourceInfo(override val module: Module) : ModuleSour
 
     override fun contentScope() = ModuleTestSourceScope(module)
 
-    override fun dependencies() = module.cachedByRootModification { ideaModelDependencies(module, productionOnly = false) }
+    override fun dependencies() = module.cached(CachedValueProvider {
+        CachedValueProvider.Result(
+                ideaModelDependencies(module, productionOnly = false),
+                ProjectRootModificationTracker.getInstance(module.getProject()))
+    })
 }
 
 private fun ModuleSourceInfo.isTests() = this is ModuleTestSourceInfo
