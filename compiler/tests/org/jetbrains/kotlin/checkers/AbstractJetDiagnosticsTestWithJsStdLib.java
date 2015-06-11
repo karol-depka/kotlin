@@ -83,6 +83,7 @@ public abstract class AbstractJetDiagnosticsTestWithJsStdLib extends AbstractJet
         ModuleDescriptorImpl module = createModule("<kotlin-js-test-module>", storageManager);
 
         List<ModuleDescriptorImpl> dependencies = new ArrayList<ModuleDescriptorImpl>();;
+        dependencies.add(module);
 
         for (ModuleDescriptorImpl moduleDescriptor : config.getModuleDescriptors()) {
             dependencies.add(moduleDescriptor);
