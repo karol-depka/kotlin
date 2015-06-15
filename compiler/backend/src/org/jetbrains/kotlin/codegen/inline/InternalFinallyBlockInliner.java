@@ -44,9 +44,16 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
 
         final AbstractInsnNode endInsExclusive;
 
-        private FinallyBlockInfo(@NotNull AbstractInsnNode inclusiveStart, @NotNull AbstractInsnNode exclusiveEnd) {
+        final AbstractInsnNode insertPosition;
+
+        private FinallyBlockInfo(
+                @NotNull AbstractInsnNode inclusiveStart,
+                @NotNull AbstractInsnNode exclusiveEnd,
+                @NotNull AbstractInsnNode insertPosition
+        ) {
             startIns = inclusiveStart;
             endInsExclusive = exclusiveEnd;
+            this.insertPosition = insertPosition;
         }
 
         public boolean isEmpty() {
@@ -401,7 +408,7 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
             checkFinally(split.getPatchedPart());
             //block patched in split method
             assert !block.isEmpty() : "Finally block should be non-empty";
-            patched.add(block);
+            //patched.add(block);
             //TODO add assert
         }
 
@@ -440,7 +447,7 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
             InsnList insnList = new InsnList();
             insnList.add(start);
             insnList.add(end);
-            return new FinallyBlockInfo(start, end);
+            return new FinallyBlockInfo(start, end, end);
         }
 
         List<TryCatchBlockNodeInfo> sameDefaultHandler = new ArrayList<TryCatchBlockNodeInfo>();
@@ -474,7 +481,7 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
         AbstractInsnNode endFinallyChainExclusive = skipLastGotoIfNeeded(nextIntervalWithSameDefaultHandler.getNode().start);
         endFinallyChainExclusive = skipTryBlockReturnOrJump(endFinallyChainExclusive);
 
-        FinallyBlockInfo finallyInfo = new FinallyBlockInfo(startFinallyChain.getNext(), endFinallyChainExclusive);
+        FinallyBlockInfo finallyInfo = new FinallyBlockInfo(startFinallyChain.getNext(), endFinallyChainExclusive, endFinallyChainExclusive);
 
         checkFinally(finallyInfo);
 
@@ -490,7 +497,7 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
     }
 
     private void checkFinally(AbstractInsnNode startIns, AbstractInsnNode endInsExclusive) {
-        if (inlineFun.instructions.indexOf(startIns) > inlineFun.instructions.indexOf(endInsExclusive)) {
+        if (inlineFun.instructions.indexOf(startIns) >= inlineFun.instructions.indexOf(endInsExclusive)) {
             throw new AssertionError("Inconsistent finally: block end occurs before start " + traceInterval(endInsExclusive, startIns));
         }
     }
@@ -513,7 +520,6 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
     private static AbstractInsnNode skipTryBlockReturnOrJump(
             @NotNull AbstractInsnNode lastFinallyInsExclusive
     ) {
-
         AbstractInsnNode prevLast = getPrevNoLineNumberOrLabel(lastFinallyInsExclusive, true);
         assert prevLast != null : "Empty finally block: " + lastFinallyInsExclusive;
 
@@ -524,7 +530,6 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
                 //skip aload
                 return prevLast.getPrevious().getPrevious();
             }
-
         }
         return lastFinallyInsExclusive;
     }
