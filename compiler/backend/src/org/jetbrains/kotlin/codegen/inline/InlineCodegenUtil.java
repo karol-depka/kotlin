@@ -423,11 +423,19 @@ public class InlineCodegenUtil {
     }
 
     public static boolean isTryBlockReturnOrJump(@NotNull AbstractInsnNode node) {
-        if (!(node.getPrevious() instanceof MethodInsnNode)) return false;
-        MethodInsnNode previous = (MethodInsnNode) node.getPrevious();
         return (node.getOpcode() == Opcodes.GOTO || isReturnOpcode(node.getOpcode())) &&
-               INLINE_MARKER_CLASS_NAME.equals(previous.owner) &&
-               INLINE_MARKER_TRY_BLOCK_RETURN_OR_JUMP.equals(previous.name);
+               isTryBlockReturnOrBlockMarker(node.getPrevious());
+    }
+
+    private static boolean isTryBlockReturnOrBlockMarker(@Nullable AbstractInsnNode ins) {
+        if (ins == null || !(ins instanceof MethodInsnNode)) return false;
+        MethodInsnNode mIns = (MethodInsnNode) ins;
+        return  INLINE_MARKER_CLASS_NAME.equals(mIns.owner) &&
+               INLINE_MARKER_TRY_BLOCK_RETURN_OR_JUMP.equals(mIns.name);
+    }
+
+    public static boolean isMarkedBlockReturnReturnOrJump(@NotNull AbstractInsnNode node) {
+        return isMarkedReturn(node) && isTryBlockReturnOrBlockMarker(node.getPrevious().getPrevious());
     }
 
     public static class LabelTextifier extends Textifier {

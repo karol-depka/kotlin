@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.ReadOnly;
 import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.kotlin.codegen.AsmUtil;
+import org.jetbrains.kotlin.codegen.optimization.common.CommonPackage;
 import org.jetbrains.org.objectweb.asm.Label;
 import org.jetbrains.org.objectweb.asm.Opcodes;
 import org.jetbrains.org.objectweb.asm.Type;
@@ -146,8 +147,15 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
             }
 
             AbstractInsnNode markedReturn = curIns;
-            final AbstractInsnNode instrInsertFinallyBefore = markedReturn.getPrevious();
+            AbstractInsnNode instrInsertFinallyBefore = markedReturn.getPrevious();
             AbstractInsnNode nextPrev = instrInsertFinallyBefore.getPrevious();
+            if (!isMarkedBlockReturnReturnOrJump(markedReturn)) {
+                MethodInsnNode returnMarker =
+                        new MethodInsnNode(Opcodes.INVOKESTATIC, INLINE_MARKER_CLASS_NAME, INLINE_MARKER_TRY_BLOCK_RETURN_OR_JUMP, "()V",
+                                           false);
+                instructions.insertBefore(instrInsertFinallyBefore, returnMarker);
+            }
+            instrInsertFinallyBefore = instrInsertFinallyBefore.getPrevious();
             LabelNode newFinallyEnd = (LabelNode) markedReturn.getNext();
             Type nonLocalReturnType = InlineCodegenUtil.getReturnType(markedReturn.getOpcode());
 
@@ -523,13 +531,24 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
         AbstractInsnNode prevLast = getPrevNoLineNumberOrLabel(lastFinallyInsExclusive, true);
         assert prevLast != null : "Empty finally block: " + lastFinallyInsExclusive;
 
-        if (InlineCodegenUtil.isTryBlockReturnOrJump(prevLast)) {
+        boolean isMarked = InlineCodegenUtil.isReturnOpcode(prevLast.getOpcode()) && InlineCodegenUtil.isMarkedBlockReturnReturnOrJump(prevLast);
+        if (InlineCodegenUtil.isTryBlockReturnOrJump(prevLast) || isMarked) {
+            int skipCount;
             if (prevLast.getOpcode() == Opcodes.RETURN) {
-                return prevLast.getPrevious();
+                skipCount = isMarked ? 2 : 1;
             } else {
                 //skip aload
-                return prevLast.getPrevious().getPrevious();
+                skipCount = isMarked ? 3 : 2;
             }
+
+            while (skipCount != 0 && prevLast.getPrevious() != null) {
+                prevLast = prevLast.getPrevious();
+                if (CommonPackage.getIsMeaningful(prevLast)) {
+                    skipCount--;
+                }
+            }
+            assert skipCount == 0;
+            return prevLast;
         }
         return lastFinallyInsExclusive;
     }
