@@ -63,7 +63,7 @@ public abstract class CoveringTryCatchNodeProcessor(parameterSize: Int) {
             if (result == 0) {
                 result = instructionIndex(t1.startLabel) - instructionIndex(t2.startLabel)
                 if (result == 0) {
-                    assert(false, "Error: support multicatch finallies!")
+                    assert(false, "Error: support multicatch finallies: ${t1.handler}, ${t2.handler}")
                     result = instructionIndex(t1.endLabel) - instructionIndex(t2.endLabel)
                 }
             }
@@ -140,6 +140,19 @@ class IntervalMetaInfo<T : SplittableInterval<T>> {
         } else {
             remapEndLabel(splittedPair.newPart.endLabel, splittedPair.patchedPart)
         }
+        addNewInterval(splittedPair.newPart)
+        return splittedPair
+    }
+
+    fun splitAndRemoveInterval(interval: T, by : Interval, keepStart: Boolean): SplittedPair<T> {
+        val splittedPair = interval.split(by, keepStart)
+        if (!keepStart) {
+            remapStartLabel(splittedPair.newPart.startLabel, splittedPair.patchedPart)
+        } else {
+            remapEndLabel(splittedPair.newPart.endLabel, splittedPair.patchedPart)
+        }
+        val b = currentIntervals.remove(splittedPair.patchedPart)
+        assert(b)
         addNewInterval(splittedPair.newPart)
         return splittedPair
     }

@@ -141,6 +141,7 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
             AbstractInsnNode markedReturn = curIns;
             final AbstractInsnNode instrInsertFinallyBefore = markedReturn.getPrevious();
             AbstractInsnNode nextPrev = instrInsertFinallyBefore.getPrevious();
+            LabelNode newFinallyEnd = (LabelNode) markedReturn.getNext();
             Type nonLocalReturnType = InlineCodegenUtil.getReturnType(markedReturn.getOpcode());
 
             //Generally there could be several tryCatch blocks (group) on one code interval (same start and end labels, but maybe different handlers) -
@@ -152,8 +153,6 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
             Iterator<TryBlockCluster<TryCatchBlockNodeInfo>> tryCatchBlockIterator = clustersFromInnermost.iterator();
 
             checkClusterInvariant(clustersFromInnermost);
-            LabelNode newFinallyEnd = new LabelNode();
-            instructions.insert(markedReturn, newFinallyEnd);
 
             List<TryCatchBlockNodeInfo> additionalNodesToSplit = new ArrayList<TryCatchBlockNodeInfo>();
             while (tryCatchBlockIterator.hasNext()) {
@@ -397,7 +396,9 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
         // so we should split original interval by inserted finally one
         for (TryCatchBlockNodeInfo block : toProcess) {
             //update exception mapping
-            tryBlocksMetaInfo.split(block, splitBy, false);
+            SplittedPair<TryCatchBlockNodeInfo> split = tryBlocksMetaInfo.splitAndRemoveInterval(block, splitBy, false);
+            checkFinally(split.getNewPart());
+            checkFinally(split.getPatchedPart());
             //block patched in split method
             assert !block.isEmpty() : "Finally block should be non-empty";
             patched.add(block);
@@ -475,11 +476,23 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
 
         FinallyBlockInfo finallyInfo = new FinallyBlockInfo(startFinallyChain.getNext(), endFinallyChainExclusive);
 
-        if (inlineFun.instructions.indexOf(finallyInfo.startIns) > inlineFun.instructions.indexOf(finallyInfo.endInsExclusive)) {
-            throw new AssertionError("Inconsistent finally: block end occurs before start " + traceInterval(finallyInfo.endInsExclusive, finallyInfo.startIns));
-        }
+        checkFinally(finallyInfo);
 
         return finallyInfo;
+    }
+
+    private void checkFinally(FinallyBlockInfo finallyInfo) {
+        checkFinally(finallyInfo.startIns, finallyInfo.endInsExclusive);
+    }
+
+    private void checkFinally(IntervalWithHandler intervalWithHandler) {
+        checkFinally(intervalWithHandler.getStartLabel(), intervalWithHandler.getEndLabel());
+    }
+
+    private void checkFinally(AbstractInsnNode startIns, AbstractInsnNode endInsExclusive) {
+        if (inlineFun.instructions.indexOf(startIns) > inlineFun.instructions.indexOf(endInsExclusive)) {
+            throw new AssertionError("Inconsistent finally: block end occurs before start " + traceInterval(endInsExclusive, startIns));
+        }
     }
 
     @NotNull
