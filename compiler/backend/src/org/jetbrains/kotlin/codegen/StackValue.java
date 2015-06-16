@@ -500,7 +500,9 @@ public abstract class StackValue {
         ReceiverValue receiverValue = isExtension ? resolvedCall.getExtensionReceiver() : resolvedCall.getDispatchReceiver();
         if (receiver == none()) {
             if (receiverValue.exists()) {
-                return codegen.generateReceiverValue(receiverValue);
+                return isExtension
+                       ? codegen.generateReceiverValue(receiverValue)
+                       : codegen.generateDispatchReceiver(resolvedCall);
             }
             else if (isLocalFunCall(callableMethod) && !isExtension) {
                 CallableDescriptor descriptor = resolvedCall.getResultingDescriptor();
@@ -1278,13 +1280,18 @@ public abstract class StackValue {
          * all the needed information, for example there's no way to find out whether or not a smart cast was applied to the receiver.
          */
         @Nullable
-        private static Type smartDispatchReceiverType(@NotNull CallableDescriptor descriptor, @NotNull JetTypeMapper typeMapper) {
+        public static Type smartDispatchReceiverType(@NotNull CallableDescriptor descriptor, @NotNull JetTypeMapper typeMapper) {
             ReceiverParameterDescriptor dispatchReceiverParameter = descriptor.getDispatchReceiverParameter();
             if (dispatchReceiverParameter == null) return null;
 
             DeclarationDescriptor container = descriptor.getContainingDeclaration();
             if (container instanceof ClassDescriptor) {
-                return typeMapper.mapClass((ClassDescriptor) container);
+                // Constructor's container is the class which it creates; for codegen however, that class's containing class
+                // should be considered as a 'receiver'.
+                // Descriptor's dispatch receiver parameter works there correctly, because inner class constructors can't be inherited
+                if (!(descriptor instanceof ConstructorDescriptor)) {
+                    return typeMapper.mapClass((ClassDescriptor) container);
+                }
             }
 
             return typeMapper.mapType(dispatchReceiverParameter);

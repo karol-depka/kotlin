@@ -2449,6 +2449,20 @@ public class ExpressionCodegen extends JetVisitor<StackValue, StackValue> implem
     }
 
     @NotNull
+    public StackValue generateDispatchReceiver(@NotNull ResolvedCall<?> resolvedCall) {
+        StackValue value = generateReceiverValue(resolvedCall.getDispatchReceiver());
+
+        if (CallResolverUtil.getSuperCallExpression(resolvedCall.getCall()) != null) {
+            // For super calls, don't coerce 'this' to the superclass, otherwise INVOKESPECIAL would be illegal
+            return value;
+        }
+
+        // If a function is a fake override or is called with a smart cast of implicit 'this', its actual receiver type is different
+        Type realType = StackValue.CallReceiver.smartDispatchReceiverType(resolvedCall.getResultingDescriptor(), typeMapper);
+        return realType == null ? value : StackValue.coercion(value, realType);
+    }
+
+    @NotNull
     public StackValue generateReceiverValue(@NotNull ReceiverValue receiverValue) {
         if (receiverValue instanceof ClassReceiver) {
             ClassDescriptor receiverDescriptor = ((ClassReceiver) receiverValue).getDeclarationDescriptor();
@@ -3377,7 +3391,7 @@ public class ExpressionCodegen extends JetVisitor<StackValue, StackValue> implem
                 ReceiverParameterDescriptor dispatchReceiver = constructor.getDispatchReceiverParameter();
                 if (dispatchReceiver != null) {
                     Type receiverType = typeMapper.mapType(dispatchReceiver.getType());
-                    generateReceiverValue(resolvedCall.getDispatchReceiver()).put(receiverType, v);
+                    generateDispatchReceiver(resolvedCall).put(receiverType, v);
                 }
 
                 // Resolved call to local class constructor doesn't have dispatchReceiver, so we need to generate closure on stack

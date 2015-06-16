@@ -4177,6 +4177,12 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
             JetTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/box/innerNested"), Pattern.compile("^(.+)\\.kt$"), true);
         }
 
+        @TestMetadata("createInnerAfterSmartCastOuter.kt")
+        public void testCreateInnerAfterSmartCastOuter() throws Exception {
+            String fileName = JetTestUtils.navigationMetadata("compiler/testData/codegen/box/innerNested/createInnerAfterSmartCastOuter.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("createNestedClass.kt")
         public void testCreateNestedClass() throws Exception {
             String fileName = JetTestUtils.navigationMetadata("compiler/testData/codegen/box/innerNested/createNestedClass.kt");
@@ -7117,6 +7123,18 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
         @TestMetadata("kt511.kt")
         public void testKt511() throws Exception {
             String fileName = JetTestUtils.navigationMetadata("compiler/testData/codegen/box/typeInfo/kt511.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("kt6744.kt")
+        public void testKt6744() throws Exception {
+            String fileName = JetTestUtils.navigationMetadata("compiler/testData/codegen/box/typeInfo/kt6744.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("kt7617.kt")
+        public void testKt7617() throws Exception {
+            String fileName = JetTestUtils.navigationMetadata("compiler/testData/codegen/box/typeInfo/kt7617.kt");
             doTest(fileName);
         }
 
