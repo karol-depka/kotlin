@@ -11433,6 +11433,12 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("NeverFinal.kt")
+            public void testNeverFinal() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/sealed/NeverFinal.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("NeverOpen.kt")
             public void testNeverOpen() throws Exception {
                 String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/sealed/NeverOpen.kt");
@@ -11454,6 +11460,12 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
             @TestMetadata("OperationWhen.kt")
             public void testOperationWhen() throws Exception {
                 String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/sealed/OperationWhen.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("RedundantAbstract.kt")
+            public void testRedundantAbstract() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/sealed/RedundantAbstract.kt");
                 doTest(fileName);
             }
 
