@@ -4,23 +4,32 @@ import kotlin.platform.platformName
 
 // extensions for Map and MutableMap
 
-public fun <V> Map<in String, *>.get(thisRef: Any?, property: PropertyMetadata): V {
-    val value = this.get(property.name)
-    if (value == null && !containsKey(property.name))
-        defaultValueProvider(thisRef, property.name)
-    return value as V
-}
+public fun <V> Map<in String, *>.get(thisRef: Any?, property: PropertyMetadata): V = getOrDefault(property.name, { defaultValueProvider(thisRef, property.name) }) as V
 
 platformName("getVar")
-public fun <V> MutableMap<in String, in V>.get(thisRef: Any?, property: PropertyMetadata): V {
-    val value = this.get(property.name)
-    if (value == null && !containsKey(property.name))
-        defaultValueProvider(thisRef, property.name)
-    return value as V
-}
+public fun <V> MutableMap<in String, in V>.get(thisRef: Any?, property: PropertyMetadata): V = getOrDefault(property.name, { defaultValueProvider(thisRef, property.name) }) as V
 
 public fun <V> MutableMap<in String, in V>.set(thisRef: Any?, property: PropertyMetadata, value: V) {
     this.put(property.name, value)
+}
+
+
+private inline fun <K, V> Map<K, V>.getOrDefault(key: K, defaultValue: () -> V): V {
+    val value = get(key)
+    if (value == null && !containsKey(key)) {
+        return defaultValue()
+    } else {
+        return value as V
+    }
+}
+
+public fun <K, V> Map<K, V>.withDefault(inlineOptions(InlineOption.ONLY_LOCAL_RETURN) default: (key: K) -> V): Map<K, V> = object : Map<K, V> by this {
+    override fun get(key: Any?): V? = this@withDefault.getOrDefault(key as K, { default(key) })
+}
+
+platformName("withDefaultMutable")
+public fun <K, V> MutableMap<K, V>.withDefault(inlineOptions(InlineOption.ONLY_LOCAL_RETURN) default: (key: Any?) -> V): MutableMap<K, V> = object : MutableMap<K, V> by this {
+    override fun get(key: Any?): V? = this@withDefault.getOrDefault(key as K, { default(key) })
 }
 
 
@@ -34,7 +43,7 @@ public interface MapAccessor<KMap, in KAccess, out V>
     /** Returns `true` if the map contains the specified [key]. */
     public fun containsKey(key: KAccess): Boolean
 
-    /** Returns the value corresponding to the given [key], or the value provided with [default] function if such a key is not present in the map. */
+    /** Returns the value corresponding to the given [key], or the default value if such a key is not present in the map. */
     public fun getOrDefault(key: KAccess): V
 
     public open fun withDefault<V>(default: (KMap) -> V): MapAccessor<KMap, KAccess, V>
@@ -80,14 +89,7 @@ private open class MapAccessorImpl<KMap, in KAccess, out V>(public override val 
 
     override fun containsKey(key: KAccess): Boolean = map.containsKey(transform(key))
 
-    override fun getOrDefault(key: KAccess): V {
-        val key1 = transform(key)
-        val value = map.get(key1)
-        if (value == null && !map.containsKey(key1))
-            return default(key1)
-        else
-            return value as V
-    }
+    override fun getOrDefault(key: KAccess): V = transform(key).let { map.getOrDefault(it, { default(it) }) }
 
     override fun withDefault<V>(default: (KMap) -> V): MapAccessor<KMap, KAccess, V> = MapAccessorImpl<KMap, KAccess, V>(map as Map<in KMap, V>, transform, default)
 }
