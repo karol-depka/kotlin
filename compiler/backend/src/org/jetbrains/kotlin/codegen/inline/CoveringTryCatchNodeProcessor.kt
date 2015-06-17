@@ -123,13 +123,13 @@ class IntervalMetaInfo<T : SplittableInterval<T>> {
 
     fun processCurrent(curIns: LabelNode, directOrder: Boolean) {
         getInterval(curIns, directOrder).forEach {
-            val b = currentIntervals.add(it)
-            assert(b, "Wrong interval structure: $curIns, $it")
+            val added = currentIntervals.add(it)
+            assert(added, "Wrong interval structure: $curIns, $it")
         }
 
         getInterval(curIns, !directOrder).forEach {
-            val b = currentIntervals.remove(it)
-            assert(b, "Wrong interval structure: $curIns, $it")
+            val removed = currentIntervals.remove(it)
+            assert(removed, "Wrong interval structure: $curIns, $it")
         }
     }
 

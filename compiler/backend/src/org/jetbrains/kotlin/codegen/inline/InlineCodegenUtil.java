@@ -410,8 +410,9 @@ public class InlineCodegenUtil {
         v.invokestatic(INLINE_MARKER_CLASS_NAME, INLINE_MARKER_GOTO_TRY_CATCH_BLOCK_END, "()V", false);
     }
 
-    public static void generateTryBlockReturnOrJumpMarker(@NotNull InstructionAdapter v) {
-        v.invokestatic(INLINE_MARKER_CLASS_NAME, INLINE_MARKER_TRY_BLOCK_RETURN_OR_JUMP, "()V", false);
+    public static void generateTryBlockReturnOrJumpMarker(@NotNull InstructionAdapter v, int deep) {
+        v.iconst(deep);
+        v.invokestatic(INLINE_MARKER_CLASS_NAME, INLINE_MARKER_TRY_BLOCK_RETURN_OR_JUMP, "(I)V", false);
     }
 
     public static boolean isGoToTryCatchBlockEnd(@NotNull AbstractInsnNode node) {
