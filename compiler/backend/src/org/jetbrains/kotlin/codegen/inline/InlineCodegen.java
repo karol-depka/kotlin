@@ -690,9 +690,9 @@ public class InlineCodegen extends CallGenerator {
                 InlineCodegenUtil.insertNodeBefore(finallyNode, intoNode, curInstr);
 
                 SimpleInterval splitBy = new SimpleInterval((LabelNode) start.info, extension.labelNode);
-                processor.getTryBlocksMetaInfo().splitCurrentIntervals(splitBy, false);
+                processor.getTryBlocksMetaInfo().splitCurrentIntervals(splitBy, true);
 
-                processor.getLocalVarsMetaInfo().splitCurrentIntervals(splitBy, false);
+                processor.getLocalVarsMetaInfo().splitCurrentIntervals(splitBy, true);
 
                 mark.dropTo();
             }
