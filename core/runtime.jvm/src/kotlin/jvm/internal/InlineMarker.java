@@ -33,4 +33,8 @@ public class InlineMarker {
     public static void tryBlockReturnOrJump() {
 
     }
+
+    public static void tryBlockReturnOrJump(int deep) {
+
+    }
 }
