@@ -18,4 +18,4 @@ fun foo() : String {
 
 // 12 ALOAD
 // 0 ASTORE
-// 0 InlineMarker
+// 1 InlineMarker
