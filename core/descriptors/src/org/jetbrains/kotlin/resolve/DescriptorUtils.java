@@ -234,23 +234,29 @@ public class DescriptorUtils {
         return false;
     }
 
-    public static boolean isSubclass(@NotNull ClassDescriptor subClass, @NotNull ClassDescriptor superClass) {
-        return isSubtypeOfClass(subClass.getDefaultType(), superClass.getOriginal());
+    public static boolean isDirectSubclass(@NotNull ClassDescriptor subClass, @NotNull ClassDescriptor superClass) {
+        return isSubtypeOfClass(subClass.getDefaultType(), superClass.getOriginal(), true, false);
     }
 
-    private static boolean isSubtypeOfClass(@NotNull JetType type, @NotNull DeclarationDescriptor superClass) {
+    public static boolean isSubclass(@NotNull ClassDescriptor subClass, @NotNull ClassDescriptor superClass) {
+        return isSubtypeOfClass(subClass.getDefaultType(), superClass.getOriginal(), false, false);
+    }
+
+    private static boolean isSubtypeOfClass(@NotNull JetType type, @NotNull DeclarationDescriptor superClass, boolean directSubclass, boolean shouldBeSame) {
         DeclarationDescriptor descriptor = type.getConstructor().getDeclarationDescriptor();
         if (descriptor != null) {
             DeclarationDescriptor originalDescriptor = descriptor.getOriginal();
             if (originalDescriptor instanceof ClassifierDescriptor
-                     && superClass instanceof ClassifierDescriptor
-                     && ((ClassifierDescriptor) superClass).getTypeConstructor().equals(((ClassifierDescriptor) originalDescriptor).getTypeConstructor())) {
+                && superClass instanceof ClassifierDescriptor
+                && ((ClassifierDescriptor) superClass).getTypeConstructor()
+                        .equals(((ClassifierDescriptor) originalDescriptor).getTypeConstructor())) {
                 return true;
             }
         }
+        if (shouldBeSame) return false;
 
         for (JetType superType : type.getConstructor().getSupertypes()) {
-            if (isSubtypeOfClass(superType, superClass)) {
+            if (isSubtypeOfClass(superType, superClass, false, directSubclass)) {
                 return true;
             }
         }
