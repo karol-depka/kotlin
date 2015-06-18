@@ -80,6 +80,8 @@ public class K2JVMCompiler extends CLICompiler<K2JVMCompilerArguments> {
         messageSeverityCollector.report(CompilerMessageSeverity.LOGGING,
                                 "Using Kotlin home directory " + paths.getHomePath(), CompilerMessageLocation.NO_LOCATION);
 
+        PerformanceCounter.Companion.setTimeCounterEnabled(arguments.reportPerf);
+
         CompilerConfiguration configuration = new CompilerConfiguration();
         configuration.put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageSeverityCollector);
 
