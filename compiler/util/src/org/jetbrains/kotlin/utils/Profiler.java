@@ -121,6 +121,11 @@ public class Profiler {
         return this;
     }
 
+    public Profiler printThreadName() {
+        println(Thread.currentThread().getName() + " ", name);
+        return this;
+    }
+
     public Profiler start() {
         if (paused) {
             start = System.nanoTime();
@@ -137,7 +142,7 @@ public class Profiler {
         paused = true;
         cumulative = 0;
 
-        if (log.isDebugEnabled()) {
+        if (!mute && log.isDebugEnabled()) {
             OUT_LOCK.lock();
             try {
                 println(name, " took ", format(result));
