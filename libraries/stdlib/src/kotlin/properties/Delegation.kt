@@ -61,8 +61,8 @@ public object Delegates {
      * @param default the function returning the value of the property for a given object if it's missing from the given map.
      */
     public fun mapVar<T>(map: MutableMap<in String, Any?>,
-                         default: (thisRef: Any?, desc: String) -> T = defaultValueProvider): ReadWriteProperty<Any?, T> {
-        return FixedMapVar<Any?, String, T>(map, defaultKeyProvider, default)
+                         default: (thisRef: Any?, desc: String) -> T = throwKeyNotFound): ReadWriteProperty<Any?, T> {
+        return FixedMapVar<Any?, String, T>(map, propertyNameSelector, default)
     }
 
     /**
@@ -72,8 +72,8 @@ public object Delegates {
      * @param default the function returning the value of the property for a given object if it's missing from the given map.
      */
     public fun mapVal<T>(map: Map<in String, Any?>,
-                         default: (thisRef: Any?, desc: String) -> T = defaultValueProvider): ReadOnlyProperty<Any?, T> {
-        return FixedMapVal<Any?, String, T>(map, defaultKeyProvider, default)
+                         default: (thisRef: Any?, desc: String) -> T = throwKeyNotFound): ReadOnlyProperty<Any?, T> {
+        return FixedMapVal<Any?, String, T>(map, propertyNameSelector, default)
     }
 }
 
@@ -218,8 +218,8 @@ public abstract class MapVar<T, K, V>() : MapVal<T, K, V>(), ReadWriteProperty<T
     }
 }
 
-private val defaultKeyProvider:(PropertyMetadata) -> String = {it.name}
-private val defaultValueProvider:(Any?, Any?) -> Nothing = {thisRef, key -> throw KeyMissingException("The value for key $key is missing from $thisRef.")}
+private val propertyNameSelector: (PropertyMetadata) -> String = {it.name}
+private val throwKeyNotFound: (Any?, Any?) -> Nothing = {thisRef, key -> throw KeyMissingException("The value for key $key is missing from $thisRef.")}
 
 /**
  * Implements a read-only property delegate that stores the property values in a given map instance and uses the given
@@ -230,7 +230,7 @@ private val defaultValueProvider:(Any?, Any?) -> Nothing = {thisRef, key -> thro
  */
 public open class FixedMapVal<T, K, out V>(private val map: Map<in K, Any?>,
                                               private val key: (PropertyMetadata) -> K,
-                                              private val default: (ref: T, key: K) -> V = defaultValueProvider) : MapVal<T, K, V>() {
+                                              private val default: (ref: T, key: K) -> V = throwKeyNotFound) : MapVal<T, K, V>() {
     protected override fun map(ref: T): Map<in K, Any?> {
         return map
     }
@@ -253,7 +253,7 @@ public open class FixedMapVal<T, K, out V>(private val map: Map<in K, Any?>,
  */
 public open class FixedMapVar<T, K, V>(private val map: MutableMap<in K, Any?>,
                                           private val key: (PropertyMetadata) -> K,
-                                          private val default: (ref: T, key: K) -> V = defaultValueProvider) : MapVar<T, K, V>() {
+                                          private val default: (ref: T, key: K) -> V = throwKeyNotFound) : MapVar<T, K, V>() {
     protected override fun map(ref: T): MutableMap<in K, Any?> {
         return map
     }

@@ -4,10 +4,10 @@ import kotlin.platform.platformName
 
 // extensions for Map and MutableMap
 
-public fun <V> Map<in String, *>.get(thisRef: Any?, property: PropertyMetadata): V = getOrDefault(property.name, { defaultValueProvider(thisRef, property.name) }) as V
+public fun <V> Map<in String, *>.get(thisRef: Any?, property: PropertyMetadata): V = getOrDefault(property.name, { throwKeyNotFound(thisRef, property.name) }) as V
 
 platformName("getVar")
-public fun <V> MutableMap<in String, in V>.get(thisRef: Any?, property: PropertyMetadata): V = getOrDefault(property.name, { defaultValueProvider(thisRef, property.name) }) as V
+public fun <V> MutableMap<in String, in V>.get(thisRef: Any?, property: PropertyMetadata): V = getOrDefault(property.name, { throwKeyNotFound(thisRef, property.name) }) as V
 
 public fun <V> MutableMap<in String, in V>.set(thisRef: Any?, property: PropertyMetadata, value: V) {
     this.put(property.name, value)
@@ -23,13 +23,26 @@ private inline fun <K, V> Map<K, V>.getOrDefault(key: K, defaultValue: () -> V):
     }
 }
 
-public fun <K, V> Map<K, V>.withDefault(inlineOptions(InlineOption.ONLY_LOCAL_RETURN) default: (key: K) -> V): Map<K, V> = object : Map<K, V> by this {
-    override fun get(key: Any?): V? = this@withDefault.getOrDefault(key as K, { default(key) })
-}
+public fun <K, V> Map<K, V>.withDefault(default: (key: K) -> V): Map<K, V> =
+        when (this) {
+            is MapWithDefault -> this.map.withDefault(default)
+            else -> MapWithDefault(this, default)
+        }
 
 platformName("withDefaultMutable")
-public fun <K, V> MutableMap<K, V>.withDefault(inlineOptions(InlineOption.ONLY_LOCAL_RETURN) default: (key: Any?) -> V): MutableMap<K, V> = object : MutableMap<K, V> by this {
-    override fun get(key: Any?): V? = this@withDefault.getOrDefault(key as K, { default(key) })
+public fun <K, V> MutableMap<K, V>.withDefault(default: (key: K) -> V): MutableMap<K, V> =
+        when (this) {
+            is MutableMapWithDefault -> this.map.withDefault(default)
+            else -> MutableMapWithDefault(this, default)
+        }
+
+
+private class MapWithDefault<K, out V>(public val map: Map<K,V>, private val default: (key: K) -> V): Map<K, V> by map {
+    override fun get(key: Any?): V = map.getOrDefault(key as K, { default(key) })
+}
+
+private class MutableMapWithDefault<K, V>(public val map: MutableMap<K, V>, private val default: (key: K) -> V): MutableMap<K, V> by map {
+    override fun get(key: Any?): V = map.getOrDefault(key as K, { default(key) })
 }
 
 
@@ -58,12 +71,12 @@ public interface MutableMapAccessor<KMap, in KAccess, V>: MapAccessor<KMap, KAcc
 }
 
 
-public fun <V> Map<in String, V>.forProperties(): MapAccessor<String, PropertyMetadata, V> = MapAccessorImpl(this, defaultKeyProvider)
+public fun <V> Map<in String, V>.forProperties(): MapAccessor<String, PropertyMetadata, V> = MapAccessorImpl(this, propertyNameSelector)
 
 // todo: inline keyselector into anonymous object
 public fun <K, V> Map<in K, V>.forProperties(keySelector: (PropertyMetadata) -> K): MapAccessor<K, PropertyMetadata, V> = MapAccessorImpl(this, keySelector)
 
-public fun <V> MutableMap<in String, V>.forProperties(): MutableMapAccessor<String, PropertyMetadata, V> = MutableMapAccessorImpl(this, defaultKeyProvider)
+public fun <V> MutableMap<in String, V>.forProperties(): MutableMapAccessor<String, PropertyMetadata, V> = MutableMapAccessorImpl(this, propertyNameSelector)
 
 // todo: inline keyselector into anonymous object
 public fun <K, V> MutableMap<in K, V>.forProperties(keySelector: (PropertyMetadata) -> K): MutableMapAccessor<K, PropertyMetadata, V> = MutableMapAccessorImpl(this, keySelector)
@@ -84,7 +97,7 @@ public fun <K, V> MutableMapAccessor<K, PropertyMetadata, in V>.set(thisRef: Any
 
 // MapAccessor implementations
 
-private open class MapAccessorImpl<KMap, in KAccess, out V>(public override val map: Map<in KMap, V>, public val transform: (KAccess) -> KMap, public val default: (KMap) -> V = { k1 -> defaultValueProvider(map, k1) })
+private open class MapAccessorImpl<KMap, in KAccess, out V>(public override val map: Map<in KMap, V>, public val transform: (KAccess) -> KMap, public val default: (KMap) -> V = { key -> throwKeyNotFound(map, key) })
 : MapAccessor<KMap, KAccess, V> {
 
     override fun containsKey(key: KAccess): Boolean = map.containsKey(transform(key))
@@ -95,7 +108,7 @@ private open class MapAccessorImpl<KMap, in KAccess, out V>(public override val 
 }
 
 
-private class MutableMapAccessorImpl<KMap, in KAccess, V>(public override val map: MutableMap<in KMap, V>, transform: (KAccess) -> KMap, default: (KMap) -> V = { k1 -> defaultValueProvider(map, k1) })
+private class MutableMapAccessorImpl<KMap, in KAccess, V>(public override val map: MutableMap<in KMap, V>, transform: (KAccess) -> KMap, default: (KMap) -> V = { key -> throwKeyNotFound(map, key) })
 : MapAccessorImpl<KMap, KAccess, V>(map, transform, default), MutableMapAccessor<KMap, KAccess, V> {
 
 
