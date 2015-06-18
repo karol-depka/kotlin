@@ -108,7 +108,7 @@ public abstract class KotlinAnnotationProvider {
 
 public class FileKotlinAnnotationProvider(val annotationsFile: File): KotlinAnnotationProvider() {
     override val serializedAnnotations: Reader
-        get() = annotationsFile.reader()
+        get() = annotationsFile.reader().buffered()
 }
 
 public class EmptyKotlinAnnotationsProvider : KotlinAnnotationProvider() {
