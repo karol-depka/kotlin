@@ -79,8 +79,8 @@ class KotlinGradleIT: BaseGradleIT() {
             assertContains(":compileKotlin")
             assertContains(":compileJava")
             assertFileExists("build/tmp/kapt/main/wrappers/annotations.main.txt")
-            assertFileExists("build/classes/main/example/TestClass.class")
             assertFileExists("build/generated/source/kapt/main/TestClassGenerated.java")
+            assertFileExists("build/classes/main/example/TestClass.class")
             assertFileExists("build/classes/main/example/TestClassGenerated.class")
         }
     }
