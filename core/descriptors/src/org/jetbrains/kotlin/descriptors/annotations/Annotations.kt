@@ -71,9 +71,9 @@ class CompositeAnnotations(
 ) : Annotations {
     override fun isEmpty() = delegates.all { it.isEmpty() }
 
-    override fun findAnnotation(fqName: FqName) = delegates.sequence().map { it.findAnnotation(fqName) }.firstOrNull()
+    override fun findAnnotation(fqName: FqName) = delegates.asSequence().map { it.findAnnotation(fqName) }.filterNotNull().firstOrNull()
 
-    override fun findExternalAnnotation(fqName: FqName) = delegates.sequence().map { it.findExternalAnnotation(fqName) }.firstOrNull()
+    override fun findExternalAnnotation(fqName: FqName) = delegates.asSequence().map { it.findExternalAnnotation(fqName) }.filterNotNull().firstOrNull()
 
-    override fun iterator() = delegates.sequence().flatMap { it.sequence() }.iterator()
+    override fun iterator() = delegates.asSequence().flatMap { it.asSequence() }.iterator()
 }
