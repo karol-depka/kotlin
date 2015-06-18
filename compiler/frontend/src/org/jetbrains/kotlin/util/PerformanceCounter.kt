@@ -16,34 +16,20 @@
 
 package org.jetbrains.kotlin.util
 
+import com.sun.org.apache.xml.internal.utils.BoolStack
 import java.lang.management.ManagementFactory
+import java.util.*
 import java.util.concurrent.TimeUnit
 
-public class PerformanceCounter private constructor (val name: String, val reenterable: Boolean = false) {
+public abstract class PerformanceCounter protected constructor(val name: String) {
     companion object {
         private val threadMxBean = ManagementFactory.getThreadMXBean()
         private val allCounters = arrayListOf<PerformanceCounter>()
-
-        private val enteredCounters = ThreadLocal<MutableSet<PerformanceCounter>>()
 
         private var enabled = false
 
         init {
             threadMxBean.setThreadCpuTimeEnabled(true)
-        }
-
-        private fun enterCounter(counter: PerformanceCounter): Boolean {
-            var enteredCountersInThread = enteredCounters.get()
-            if (enteredCountersInThread == null) {
-                enteredCountersInThread = hashSetOf(counter)
-                enteredCounters.set(enteredCountersInThread)
-                return true
-            }
-            return enteredCountersInThread.add(counter)
-        }
-
-        private fun leaveCounter(counter: PerformanceCounter) {
-            enteredCounters.get()?.remove(counter)
         }
 
         public fun currentThreadCpuTime(): Long = threadMxBean.getCurrentThreadUserTime()
@@ -60,12 +46,28 @@ public class PerformanceCounter private constructor (val name: String, val reent
         }
 
         public jvmOverloads fun create(name: String, reentable: Boolean = false): PerformanceCounter {
-            return PerformanceCounter(name, reentable)
+            return if (reentable)
+                ReenterableCounter(name)
+            else
+                SimpleCounter(name)
+        }
+
+        public fun create(name: String, vararg excluded: PerformanceCounter): PerformanceCounter = CounterWithExclude(name, *excluded)
+
+        protected inline fun <T> getOrPut(threadLocal: ThreadLocal<T>, default: () -> T) : T {
+            var value = threadLocal.get()
+            if (value == null) {
+                value = default()
+                threadLocal.set(value)
+            }
+            return value
         }
     }
 
-    private var count: Int = 0
-    private var totalTimeNanos: Long = 0
+    protected val excludedFrom: MutableSet<CounterWithExclude> = HashSet()
+
+    private  var count: Int = 0
+    protected var totalTimeNanos: Long = 0
 
     init {
         synchronized(allCounters) {
@@ -73,26 +75,24 @@ public class PerformanceCounter private constructor (val name: String, val reent
         }
     }
 
-    public fun increment() {
+    public final fun increment() {
         count++
     }
 
-    public fun time<T>(block: () -> T): T {
+    public final fun time<T>(block: () -> T): T {
         count++
         if (!enabled) return block()
 
-        val needTime = !reenterable || enterCounter(this)
-        val startTime = currentThreadCpuTime()
+        excludedFrom.forEach { it.enterExcludedMethod() }
         try {
-            return block()
+            return countTime(block)
         }
         finally {
-            if (needTime) {
-                totalTimeNanos += currentThreadCpuTime() - startTime
-                if (reenterable) leaveCounter(this)
-            }
+            excludedFrom.forEach { it.exitExcludedMethod() }
         }
     }
+
+    protected abstract fun countTime<T>(block: () -> T): T
 
     public fun report(consumer: (String) -> Unit) {
         if (totalTimeNanos == 0L) {
@@ -102,5 +102,103 @@ public class PerformanceCounter private constructor (val name: String, val reent
             val millis = TimeUnit.NANOSECONDS.toMillis(totalTimeNanos)
             consumer("$name performed $count times, total time $millis ms")
         }
+    }
+}
+
+private class SimpleCounter(name: String): PerformanceCounter(name) {
+    override fun <T> countTime(block: () -> T): T {
+        val startTime = PerformanceCounter.currentThreadCpuTime()
+        try {
+            return block()
+        }
+        finally {
+            totalTimeNanos += PerformanceCounter.currentThreadCpuTime() - startTime
+        }
+    }
+}
+
+private class ReenterableCounter(name: String): PerformanceCounter(name) {
+    companion object {
+        private val enteredCounters = ThreadLocal<MutableSet<ReenterableCounter>>()
+
+        private fun enterCounter(counter: ReenterableCounter) = PerformanceCounter.getOrPut(enteredCounters) { HashSet() }.add(counter)
+
+        private fun leaveCounter(counter: ReenterableCounter) {
+            enteredCounters.get()?.remove(counter)
+        }
+    }
+
+    override fun <T> countTime(block: () -> T): T {
+        val startTime = PerformanceCounter.currentThreadCpuTime()
+        val needTime = enterCounter(this)
+        try {
+            return block()
+        }
+        finally {
+            if (needTime) {
+                totalTimeNanos += PerformanceCounter.currentThreadCpuTime() - startTime
+                leaveCounter(this)
+            }
+        }
+    }
+}
+
+private class CounterWithExclude(name: String, vararg excludedCounters: PerformanceCounter): PerformanceCounter(name) {
+    companion object {
+        private val counterToCallStackMapThreadLocal = ThreadLocal<MutableMap<CounterWithExclude, CallStackWithTime>>()
+
+        private fun getCallStack(counter: CounterWithExclude)
+                = PerformanceCounter.getOrPut(counterToCallStackMapThreadLocal) { HashMap() }.getOrPut(counter) { CallStackWithTime() }
+    }
+
+    init {
+        excludedCounters.forEach { it.excludedFrom.add(this) }
+    }
+
+    override fun <T> countTime(block: () -> T): T {
+        totalTimeNanos += getCallStack(this).push(true)
+        try {
+            return block()
+        }
+        finally {
+            totalTimeNanos += getCallStack(this).pop(true)
+        }
+    }
+
+    fun enterExcludedMethod() {
+        totalTimeNanos += getCallStack(this).push(false)
+    }
+
+    fun exitExcludedMethod() {
+        totalTimeNanos += getCallStack(this).pop(false)
+    }
+
+    class CallStackWithTime {
+        private val callStack = BoolStack()
+        private var intervalStartTime: Long = 0
+
+        private fun intervalUsefulTime(callStackUpdate: BoolStack.() -> Unit): Long {
+            val now = PerformanceCounter.currentThreadCpuTime()
+            val delta = if (callStack.peekOrFalse()) now - intervalStartTime else 0
+            intervalStartTime = now
+
+            callStack.callStackUpdate()
+            return delta
+        }
+
+        fun push(usefulCall: Boolean): Long {
+            if (!isEnteredCounter() && !usefulCall) return 0
+
+            return intervalUsefulTime { push(usefulCall) }
+        }
+
+        fun pop(usefulCall: Boolean): Long {
+            if (!isEnteredCounter()) return 0
+
+            assert(callStack.peek() == usefulCall)
+            return intervalUsefulTime { pop() }
+        }
+
+        fun isEnteredCounter(): Boolean = !callStack.isEmpty()
     }
 }
