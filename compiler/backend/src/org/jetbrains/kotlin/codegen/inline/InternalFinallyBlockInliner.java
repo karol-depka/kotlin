@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.codegen.inline;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.util.Ref;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.ReadOnly;
@@ -178,14 +179,17 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
                 List<TryCatchBlockNodeInfo> clusterBlocks = clusterToFindFinally.getBlocks();
                 TryCatchBlockNodeInfo nodeWithDefaultHandlerIfExists = clusterBlocks.get(clusterBlocks.size() - 1);
 
-                FinallyBlockInfo finallyInfo = findFinallyBlockBody(nodeWithDefaultHandlerIfExists, getTryBlocksMetaInfo().getAllIntervals(),
-                                                                    originalDeepIndex);
-                if (finallyInfo == null) continue;
 
                 if (nodeWithDefaultHandlerIfExists.getOnlyCopyNotProcess()) {
                     additionalNodesToSplit.addAll(clusterBlocks);
                     continue;
                 }
+
+                Ref<Boolean> ref = new Ref<Boolean>();
+                ref.set(false);
+                FinallyBlockInfo finallyInfo = findFinallyBlockBody(nodeWithDefaultHandlerIfExists, getTryBlocksMetaInfo().getAllIntervals(),
+                                                                    originalDeepIndex, ref);
+                if (finallyInfo == null) continue;
 
                 originalDeepIndex++;
 
@@ -233,6 +237,9 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
 
                 updateExceptionTable(clusterBlocks, newFinallyStart, newFinallyEnd,
                                      tryCatchBlockInlinedInFinally, labelsInsideFinally, (LabelNode) insertedBlockEnd.info, additionalNodesToSplit);
+                if (ref.get()) {
+                    break;
+                }
             }
 
             //skip just inserted finally
@@ -454,7 +461,8 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
     private FinallyBlockInfo findFinallyBlockBody(
             @NotNull TryCatchBlockNodeInfo tryCatchBlock,
             @ReadOnly @NotNull List<TryCatchBlockNodeInfo> tryCatchBlocks,
-            int originalDeepIndex
+            int originalDeepIndex,
+            Ref<Boolean> ref
     ) {
         if (tryCatchBlock.getOnlyCopyNotProcess()) {
             AbstractInsnNode start = new LabelNode();
@@ -494,7 +502,8 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
         TryCatchBlockNodeInfo nextIntervalWithSameDefaultHandler = sameDefaultHandler.get(1);
         AbstractInsnNode startFinallyChain = tryCatchBlock.getNode().end;
         AbstractInsnNode endFinallyChainExclusive = skipLastGotoIfNeeded(nextIntervalWithSameDefaultHandler.getNode().start);
-        endFinallyChainExclusive = skipTryBlockReturnOrJump(endFinallyChainExclusive, originalDeepIndex);
+
+        endFinallyChainExclusive = skipTryBlockReturnOrJump(endFinallyChainExclusive, originalDeepIndex, ref);
 
         FinallyBlockInfo finallyInfo = new FinallyBlockInfo(startFinallyChain.getNext(), endFinallyChainExclusive, endFinallyChainExclusive);
 
@@ -534,8 +543,10 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
     @NotNull
     private static AbstractInsnNode skipTryBlockReturnOrJump(
             @NotNull AbstractInsnNode lastFinallyInsExclusive,
-            int originalDeepIndex
+            int originalDeepIndex,
+            Ref<Boolean> ref
     ) {
+        ref.set(false);
         AbstractInsnNode returnInst = getPrevNoLineNumberOrLabel(lastFinallyInsExclusive, true);
         assert returnInst != null : "Empty finally block: " + lastFinallyInsExclusive;
 
@@ -557,6 +568,7 @@ public class InternalFinallyBlockInliner extends CoveringTryCatchNodeProcessor {
             }
 
             if (value <= originalDeepIndex) {
+                ref.set(value == originalDeepIndex);
                 int skipCount;
                 if (returnInst.getOpcode() == Opcodes.RETURN) {
                     return lastFinallyInsExclusive;
