@@ -225,7 +225,7 @@ private class ResolutionFacadeImpl(private val project: Project, private val cac
         return cache.getLazyResolveSession(file).getScopeProvider().getFileScope(file)
     }
 
-    override fun resolveImportReference(moduleDescriptor: ModuleDescriptor, fqName: FqName, isDefaultImport: Boolean): Collection<DeclarationDescriptor> {
+    override fun resolveImportReference(moduleDescriptor: ModuleDescriptor, fqName: FqName): Collection<DeclarationDescriptor> {
         val importDirective = JetPsiFactory(project).createImportDirective(ImportPath(fqName, false))
         val resolveSession = cache.getLazyResolveSession(moduleDescriptor)
         val resolver = resolveSession.getQualifiedExpressionResolver()
