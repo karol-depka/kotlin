@@ -145,10 +145,11 @@ public fun <K, V> Map.Entry<K, V>.toPair(): Pair<K, V> {
  * @sample test.collections.MapTest.getOrElse
  */
 public inline fun <K, V> Map<K, V>.getOrElse(key: K, defaultValue: () -> V): V {
-    if (containsKey(key)) {
-        return get(key) as V
-    } else {
+    val value = get(key)
+    if (value == null && !containsKey(key)) {
         return defaultValue()
+    } else {
+        return value as V
     }
 }
 
