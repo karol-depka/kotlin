@@ -74,10 +74,11 @@ private fun JetType.extractQualifiers(): JavaTypeQualifiers {
 
 private fun Annotations.extractQualifiers(): JavaTypeQualifiers {
     fun <T: Any> List<FqName>.ifPresent(qualifier: T) = if (any { findAnnotation(it) != null}) qualifier else null
+    fun <T: Any> singleNotNull(x: T?, y: T?) = if (x == null || y == null) x ?: y else null
 
     return JavaTypeQualifiers(
-            NULLABLE_ANNOTATIONS.ifPresent(NULLABLE) ?: NOT_NULL_ANNOTATIONS.ifPresent(NOT_NULL),
-            READ_ONLY_ANNOTATIONS.ifPresent(READ_ONLY) ?: MUTABLE_ANNOTATIONS.ifPresent(MUTABLE)
+            singleNotNull(NULLABLE_ANNOTATIONS.ifPresent(NULLABLE), NOT_NULL_ANNOTATIONS.ifPresent(NOT_NULL)),
+            singleNotNull(READ_ONLY_ANNOTATIONS.ifPresent(READ_ONLY), MUTABLE_ANNOTATIONS.ifPresent(MUTABLE))
     )
 }
 
