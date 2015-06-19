@@ -16,9 +16,12 @@
 
 package org.jetbrains.kotlin.gradle.internal
 
+import com.android.build.gradle.BaseExtension
+import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.JavaCompile
+import org.jetbrains.kotlin.gradle.plugin.KaptExtension
 import org.jetbrains.kotlin.gradle.plugin.kotlinDebug
 import java.io.File
 import java.io.IOException
@@ -33,7 +36,8 @@ public class AnnotationProcessingManager(
         private val aptFiles: Set<File>,
         private val aptOutputDir: File,
         private val aptWorkingDir: File,
-        private val coreClassLoader: ClassLoader) {
+        private val coreClassLoader: ClassLoader,
+        private val androidVariant: Any? = null) {
 
     private val project = task.getProject()
 
@@ -46,7 +50,7 @@ public class AnnotationProcessingManager(
     }
 
     fun getAnnotationFile(): File {
-        aptWorkingDir.mkdirs()
+        if (!aptWorkingDir.exists()) aptWorkingDir.mkdirs()
         return File(aptWorkingDir, "$WRAPPERS_DIRECTORY/annotations.$taskQualifier.txt")
     }
 
@@ -56,8 +60,6 @@ public class AnnotationProcessingManager(
         if (project.getPlugins().findPlugin("com.neenbedankt.android-apt") != null) {
             project.getLogger().warn("Please do not use `$ANDROID_APT_PLUGIN_ID` with kapt.")
         }
-
-        generateJavaHackFile(aptWorkingDir, javaTask)
 
         val annotationProcessorFqNames = lookupAnnotationProcessors(aptFiles)
 
@@ -69,6 +71,9 @@ public class AnnotationProcessingManager(
         javaTask.appendClasspath(stubOutputDir)
 
         addGeneratedSourcesOutputToCompilerArgs(javaTask, aptOutputDir)
+
+        appendAnnotationsFileLocationArgument()
+        appendAdditionalComplerArgs()
     }
 
     fun afterJavaCompile() {
@@ -80,8 +85,8 @@ public class AnnotationProcessingManager(
         }
     }
 
-    private fun generateJavaHackFile(aptDir: File, javaTask: JavaCompile) {
-        val javaAptSourceDir = File(aptDir, "java_src")
+    fun generateJavaHackFile() {
+        val javaAptSourceDir = File(aptWorkingDir, "java_src")
         val javaHackPackageDir = File(javaAptSourceDir, GEN_ANNOTATION)
 
         javaHackPackageDir.mkdirs()
@@ -93,6 +98,22 @@ public class AnnotationProcessingManager(
 
         project.getLogger().kotlinDebug("kapt: Java file stub generated: $javaHackClFile")
         javaTask.source(javaAptSourceDir)
+    }
+
+    private fun appendAnnotationsFileLocationArgument() {
+        javaTask.modifyCompilerArguments { list ->
+            list.add("-Akapt.annotations=" + getAnnotationFile())
+        }
+    }
+
+    private fun appendAdditionalComplerArgs() {
+        val kaptExtension = project.getExtensions().getByType(javaClass<KaptExtension>())
+        val args = kaptExtension.getAdditionalArguments(project, androidVariant, getAndroidExtension())
+        if (args.isEmpty()) return
+
+        javaTask.modifyCompilerArguments { list ->
+            list.addAll(args)
+        }
     }
 
     private fun generateAnnotationProcessorStubs(javaTask: JavaCompile, processorFqNames: Set<String>, outputDir: File) {
@@ -125,6 +146,14 @@ public class AnnotationProcessingManager(
     private fun addWrappersToCompilerArgs(javaTask: JavaCompile, wrapperFqNames: String) {
         javaTask.addCompilerArgument("-processor") { prevValue ->
             if (prevValue != null) "$prevValue,$wrapperFqNames" else wrapperFqNames
+        }
+    }
+
+    private fun getAndroidExtension(): BaseExtension? {
+        try {
+            return project.getExtensions().getByName("android") as BaseExtension
+        } catch (e: UnknownDomainObjectException) {
+            return null
         }
     }
 
