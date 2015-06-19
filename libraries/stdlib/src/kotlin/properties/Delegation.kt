@@ -158,12 +158,6 @@ private class BlockingLazyVal<T>(lock: Any?, private val initializer: () -> T) :
 }
 
 /**
- * Exception thrown by the default implementation of property delegates which store values in a map
- * when the map does not contain the corresponding key.
- */
-public class KeyMissingException(message: String): RuntimeException(message)
-
-/**
  * Implements the core logic for a property delegate that stores property values in a map.
  * @param T the type of the object that owns the delegated property.
  * @param K the type of key in the map.
