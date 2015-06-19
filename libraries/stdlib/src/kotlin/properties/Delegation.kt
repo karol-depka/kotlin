@@ -1,46 +1,5 @@
 package kotlin.properties
 
-/**
- * Base interface that can be used for implementing property delegates of read-only properties. This is provided only for
- * convenience; you don't have to extend this interface as long as your property delegate has methods with the same
- * signatures.
- * @param R the type of object which owns the delegated property.
- * @param T the type of the property value.
- */
-public interface ReadOnlyProperty<in R, out T> {
-    /**
-     * Returns the value of the property for the given object.
-     * @param thisRef the object for which the value is requested.
-     * @param desc the metadata for the property.
-     * @return the property value.
-     */
-    public fun get(thisRef: R, desc: PropertyMetadata): T
-}
-
-/**
- * Base interface that can be used for implementing property delegates of read-only properties. This is provided only for
- * convenience; you don't have to extend this interface as long as your property delegate has methods with the same
- * signatures.
- * @param R the type of object which owns the delegated property.
- * @param T the type of the property value.
- */
-public interface ReadWriteProperty<in R, T> {
-    /**
-     * Returns the value of the property for the given object.
-     * @param thisRef the object for which the value is requested.
-     * @param desc the metadata for the property.
-     * @return the property value.
-     */
-    public fun get(thisRef: R, desc: PropertyMetadata): T
-
-    /**
-     * Sets the value of the property for the given object.
-     * @param thisRef the object for which the value is requested.
-     * @param desc the metadata for the property.
-     * @param value the value to set.
-     */
-    public fun set(thisRef: R, desc: PropertyMetadata, value: T)
-}
 
 /**
  * Standard property delegates.
@@ -58,6 +17,7 @@ public object Delegates {
      * specified block of code. Supports lazy initialization semantics for properties.
      * @param initializer the function that returns the value of the property.
      */
+    deprecated("Use lazy {} instead in kotlin package", ReplaceWith("kotlin.lazy(initializer)"))
     public fun lazy<T>(initializer: () -> T): ReadOnlyProperty<Any?, T> = LazyVal(initializer)
 
     /**
@@ -68,6 +28,7 @@ public object Delegates {
      *             the property delegate object itself is used as a lock.
      * @param initializer the function that returns the value of the property.
      */
+    deprecated("Use lazy {} instead in kotlin package", ReplaceWith("kotlin.lazy(initializer)"))
     public fun blockingLazy<T>(lock: Any? = null, initializer: () -> T): ReadOnlyProperty<Any?, T> = BlockingLazyVal(lock, initializer)
 
     /**
@@ -120,11 +81,11 @@ public object Delegates {
 private class NotNullVar<T: Any>() : ReadWriteProperty<Any?, T> {
     private var value: T? = null
 
-    public override fun get(thisRef: Any?, desc: PropertyMetadata): T {
-        return value ?: throw IllegalStateException("Property ${desc.name} should be initialized before get")
+    public override fun get(thisRef: Any?, property: PropertyMetadata): T {
+        return value ?: throw IllegalStateException("Property ${property.name} should be initialized before get.")
     }
 
-    public override fun set(thisRef: Any?, desc: PropertyMetadata, value: T) {
+    public override fun set(thisRef: Any?, property: PropertyMetadata, value: T) {
         this.value = value
     }
 }
@@ -140,12 +101,12 @@ public class ObservableProperty<T>(
 ) : ReadWriteProperty<Any?, T> {
     private var value = initialValue
 
-    public override fun get(thisRef: Any?, desc: PropertyMetadata): T {
+    public override fun get(thisRef: Any?, property: PropertyMetadata): T {
         return value
     }
 
-    public override fun set(thisRef: Any?, desc: PropertyMetadata, value: T) {
-        if (onChange(desc, this.value, value)) {
+    public override fun set(thisRef: Any?, property: PropertyMetadata, value: T) {
+        if (onChange(property, this.value, value)) {
             this.value = value
         }
     }
@@ -158,13 +119,13 @@ private fun escape(value: Any?): Any {
 }
 
 private fun unescape(value: Any?): Any? {
-    return if (value == NULL_VALUE) null else value
+    return if (value === NULL_VALUE) null else value
 }
 
 private class LazyVal<T>(private val initializer: () -> T) : ReadOnlyProperty<Any?, T> {
     private var value: Any? = null
 
-    public override fun get(thisRef: Any?, desc: PropertyMetadata): T {
+    public override fun get(thisRef: Any?, property: PropertyMetadata): T {
         if (value == null) {
             value = escape(initializer())
         }
@@ -176,7 +137,7 @@ private class BlockingLazyVal<T>(lock: Any?, private val initializer: () -> T) :
     private val lock = lock ?: this
     private volatile var value: Any? = null
 
-    public override fun get(thisRef: Any?, desc: PropertyMetadata): T {
+    public override fun get(thisRef: Any?, property: PropertyMetadata): T {
         val _v1 = value
         if (_v1 != null) {
             return unescape(_v1) as T
@@ -224,17 +185,17 @@ public abstract class MapVal<T, K, out V>() : ReadOnlyProperty<T, V> {
     /**
      * Returns the property value to be used when the map does not contain the corresponding key.
      * @param ref the object instance for which the value was requested.
-     * @param desc the property for which the value was requested.
+     * @param property the property for which the value was requested.
      */
-    protected open fun default(ref: T, desc: PropertyMetadata): V {
-        throw KeyMissingException("Key $desc is missing in $ref")
+    protected open fun default(ref: T, property: PropertyMetadata): V {
+        throw KeyMissingException("The value for property ${property.name} is missing in $ref.")
     }
 
-    public override fun get(thisRef: T, desc: PropertyMetadata) : V {
+    public override fun get(thisRef: T, property: PropertyMetadata) : V {
         val map = map(thisRef)
-        val key = key(desc)
+        val key = key(property)
         if (!map.containsKey(key)) {
-            return default(thisRef, desc)
+            return default(thisRef, property)
         }
 
         return map[key] as V
@@ -250,14 +211,14 @@ public abstract class MapVal<T, K, out V>() : ReadOnlyProperty<T, V> {
 public abstract class MapVar<T, K, V>() : MapVal<T, K, V>(), ReadWriteProperty<T, V> {
     protected abstract override fun map(ref: T): MutableMap<in K, Any?>
 
-    public override fun set(thisRef: T, desc: PropertyMetadata, value: V) {
+    public override fun set(thisRef: T, property: PropertyMetadata, value: V) {
         val map = map(thisRef)
-        map.put(key(desc), value)
+        map.put(key(property), value)
     }
 }
 
 private val defaultKeyProvider:(PropertyMetadata) -> String = {it.name}
-private val defaultValueProvider:(Any?, Any?) -> Nothing = {thisRef, key -> throw KeyMissingException("$key is missing from $thisRef")}
+private val defaultValueProvider:(Any?, Any?) -> Nothing = {thisRef, key -> throw KeyMissingException("The value for key $key is missing from $thisRef.")}
 
 /**
  * Implements a read-only property delegate that stores the property values in a given map instance and uses the given
@@ -277,8 +238,8 @@ public open class FixedMapVal<T, K, out V>(private val map: Map<in K, Any?>,
         return (key)(desc)
     }
 
-    protected override fun default(ref: T, desc: PropertyMetadata): V {
-        return (default)(ref, key(desc))
+    protected override fun default(ref: T, property: PropertyMetadata): V {
+        return (default)(ref, key(property))
     }
 }
 
@@ -300,7 +261,7 @@ public open class FixedMapVar<T, K, V>(private val map: MutableMap<in K, Any?>,
         return (key)(desc)
     }
 
-    protected override fun default(ref: T, desc: PropertyMetadata): V {
-        return (default)(ref, key(desc))
+    protected override fun default(ref: T, property: PropertyMetadata): V {
+        return (default)(ref, key(property))
     }
 }
